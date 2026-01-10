@@ -1,0 +1,86 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/*.mp4
+downloads/*.mkv
+downloads/*.webm
+downloads/*.m4a
+downloads/*.mp3
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# AI Assistant Working Directories
+.claude/
+
+# Project specific
+downloads/
+logs/
+subs_raw/
+subs_translated/
+output/
+
+# Keep example files
+!subs_translated/.gitkeep
+!output/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Cookies (sensitive)
+cookies.txt
+*.cookies
+
+# Test files
+test_*.py
+debug_*.py
+*.test
+tests/
+test.ass
+nul
+*.tmp
+debug_out.txt
+=*
+
+# Report files (temporary)
+*_REPORT.md
+*_EVALUATION.md
+DRAFT_*.md
+
+# Documentation drafts
+*.md.bak
+DRAFT_*.md
