@@ -7,7 +7,6 @@ import yt_dlp
 from pathlib import Path
 from typing import Optional, Dict
 from utils import setup_logger, DOWNLOADS_DIR, validate_file_size, sanitize_filename
-from alt_download import smart_download
 
 logger = setup_logger("download")
 
@@ -116,16 +115,6 @@ def download_video(
             logger.error(f"  Hint: Check if URL is valid, cookies are working, or try with VPN")
             if attempt == retry:
                 logger.error(f"All {retry + 1} download attempts failed")
-                # Try alternative downloader as last resort
-                logger.info("Trying alternative download method...")
-                alt_result = smart_download(url, quality, cookies_file)
-                if alt_result:
-                    return {
-                        'video': alt_result,
-                        'subtitle': None,
-                        'title': alt_result.stem,
-                        'duration': 0,
-                    }
                 return None
 
     return None
