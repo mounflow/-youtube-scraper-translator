@@ -14,20 +14,20 @@ from pathlib import Path
 
 # 设置Windows控制台UTF-8编码
 # 设置Windows控制台UTF-8编码
-# if sys.platform == 'win32':
-#     try:
-#         os.system('chcp 65001 > nul')
-#         sys.stdout.reconfigure(encoding='utf-8')
-#         sys.stderr.reconfigure(encoding='utf-8')
-#     except:
-#         pass
+if sys.platform == 'win32':
+    try:
+        os.system('chcp 65001 > nul')
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except:
+        pass
 
 from utils import setup_logger, SUBS_RAW_DIR, SUBS_TRANSLATED_DIR, format_timestamp
 from search import search_videos, display_results
 from download import download_video, extract_audio
 from subtitle import parse_srt, parse_vtt, transcribe_with_whisper, validate_subtitles
 from translate import Translator, save_bilingual_srt
-from burn import burn_subtitles, check_ffmpeg_installed, get_video_resolution, calculate_font_size
+from burn import burn_subtitles, check_ffmpeg_installed, get_video_resolution, calculate_font_size, calculate_ass_font_size
 from subtitle_generator import generate_styled_ass
 from translation_optimizer import optimize_srt_translation
 from style_config import STYLES
@@ -325,10 +325,20 @@ def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only:
 
         # Determine output format
         if not simple_style:
-            # Generate Advanced ASS
+            # Generate Advanced ASS with resolution-based font sizing
             subtitle_output = SUBS_TRANSLATED_DIR / f"{video_title}_styled.ass"
             try:
-                generate_styled_ass(str(subtitle_source), str(subtitle_output), style_name=style)
+                # Detect video resolution for font sizing
+                resolution = get_video_resolution(video_file)
+                custom_font_size = None
+                if resolution:
+                    custom_font_size = calculate_ass_font_size(resolution)
+                    print(f"[*] Video resolution: {resolution[0]}x{resolution[1]}")
+                    print(f"[*] Calculated ASS font size: {custom_font_size}px")
+                else:
+                    print("[WARNING] Could not detect video resolution, using default font size")
+
+                generate_styled_ass(str(subtitle_source), str(subtitle_output), style_name=style, custom_font_size=custom_font_size)
                 print(f"[*] Generated Styled ASS ({style}): {subtitle_output.name}")
             except Exception as e:
                 logger.error(f"ASS generation failed: {e}")
@@ -373,7 +383,10 @@ def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only:
         # Get video resolution for font sizing
         resolution = get_video_resolution(video_file)
         if resolution:
-            font_size = calculate_font_size(resolution)
+            if not simple_style:
+                font_size = calculate_ass_font_size(resolution)
+            else:
+                font_size = calculate_font_size(resolution)
             print(f"Video resolution: {resolution[0]}x{resolution[1]}")
             print(f"Font size: {font_size}")
             custom_style = {'FontSize': font_size}

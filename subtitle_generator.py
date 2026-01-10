@@ -51,7 +51,7 @@ def convert_time(srt_time):
     h = int(parts[0])
     m = int(parts[1])
     s = parts[2]
-    return f"{h}:{m}:{s[:-1]}" 
+    return f"{h:02d}:{m:02d}:{s[:-1]}" 
 
 def parse_time_to_ms(ass_time):
     parts = ass_time.split(':')
@@ -70,7 +70,7 @@ def ms_to_ass_time(ms):
     s = ms // 1000
     ms %= 1000
     cs = ms // 10
-    return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
+    return f"{h:02d}:{m:02d}:{s:02d}.{cs:02d}"
 
 def fix_overlaps(entries, min_gap_ms=100):
     """改进的时间轴重叠修复算法 - 保守方案
@@ -115,41 +115,65 @@ def fix_overlaps(entries, min_gap_ms=100):
 
     return sorted_entries
 
-def generate_styled_ass(input_srt_file, output_ass_file, style_name="obama"):
+def generate_styled_ass(input_srt_file, output_ass_file, style_name="obama", custom_font_size=None):
     """
     主函数：生成ASS文件
+
+    Args:
+        input_srt_file: 输入SRT文件路径
+        output_ass_file: 输出ASS文件路径
+        style_name: 样式名称 (默认: obama)
+        custom_font_size: 自定义字体大小 (可选，基于视频分辨率计算)
     """
     if style_name not in STYLES:
         print(f"WARNING: 样式 '{style_name}' 未找到，使用默认 'obama' 样式")
         style_name = "obama"
-    
+
     style_config = STYLES[style_name]
-    
+
     # 1. 读取并解析SRT
     with open(input_srt_file, 'r', encoding='utf-8') as f:
         content = f.read()
     entries = parse_srt_content(content)
-    
+
     # 2. 修复时间重叠
     entries = fix_overlaps(entries)
-    
-    # 3. 生成ASS内容
-    header = ASS_HEADER_TEMPLATE.format(style_line=style_config["ass_style_line"])
-    
+
+    # 3. 处理字体大小
+    ass_style_line = style_config["ass_style_line"]
+    if custom_font_size:
+        # 替换样式行中的字体大小（第3个字段）
+        # 格式: Style: Default,Fontname,FontSize,PrimaryColour,...
+        parts = ass_style_line.split(',')
+        if len(parts) >= 3:
+            parts[2] = str(custom_font_size)
+            ass_style_line = ','.join(parts)
+            print(f"[INFO] Using custom font size: {custom_font_size}px (based on video resolution)")
+
+    # 4. 同样调整英文子标题字体大小（如果有）
+    english_fontsize = style_config.get("english_fontsize")
+    if custom_font_size and english_fontsize:
+        # 英文字体通常是中文字体的 60%
+        style_config = dict(style_config)  # 创建副本避免修改原始配置
+        style_config["english_fontsize"] = int(custom_font_size * 0.6)
+
+    # 5. 生成ASS内容
+    header = ASS_HEADER_TEMPLATE.format(style_line=ass_style_line)
+
     with open(output_ass_file, 'w', encoding='utf-8') as f:
         f.write(header)
-        
+
         for entry in entries:
             text = ""
             eng_text = entry['english']
             chi_text = entry['chinese']
-            
+
             # 应用各语言样式
             if style_config.get("english_color"):
                  eng_text = f"{{\\c{style_config['english_color']}}}{eng_text}"
             if style_config.get("english_fontsize"):
                  eng_text = f"{{\\fs{style_config['english_fontsize']}}}{eng_text}"
-            
+
             # 组合顺序
             if style_config["order"] == "eng_first":
                 # 英文在上
@@ -161,10 +185,10 @@ def generate_styled_ass(input_srt_file, output_ass_file, style_name="obama"):
                 if chi_text: text += chi_text
                 if eng_text and chi_text: text += r"\N"
                 if eng_text: text += eng_text
-            
+
             line = f"Dialogue: 0,{entry['start']},{entry['end']},Default,,0,0,0,,{text}\n"
             f.write(line)
-            
+
     print(f"[SUCCESS] 生成ASS字幕 ({style_name}): {output_ass_file}")
     return True
 

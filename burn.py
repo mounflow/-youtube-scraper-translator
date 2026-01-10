@@ -352,6 +352,41 @@ def get_video_resolution(video_path: Path) -> Optional[tuple]:
 
         return (width, height)
 
+    except ImportError:
+        # Fallback to subprocess if ffmpeg-python not available
+        logger.warning("ffmpeg-python not available, using subprocess fallback")
+        try:
+            # Use ffprobe to get video info (faster than ffmpeg)
+            ffprobe_path = FFMPEG_PATH.replace('ffmpeg.exe', 'ffprobe.exe') if FFMPEG_PATH != 'ffmpeg' else 'ffprobe'
+
+            cmd = [
+                ffprobe_path,
+                '-v', 'error',
+                '-select_streams', 'v:0',
+                '-show_entries', 'stream=width,height',
+                '-of', 'csv=p=0',
+                str(video_path)
+            ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+
+            # Parse output: "1280,720" (comma-separated)
+            output = result.stdout.strip()
+            if ',' in output:
+                parts = output.split(',')
+                width = int(parts[0])
+                height = int(parts[1])
+                return (width, height)
+
+        except Exception as e:
+            logger.error(f"Error getting video resolution with subprocess: {e}")
+            return None
+
     except Exception as e:
         logger.error(f"Error getting video resolution: {e}")
         return None
@@ -359,13 +394,13 @@ def get_video_resolution(video_path: Path) -> Optional[tuple]:
 
 def calculate_font_size(resolution: tuple) -> int:
     """
-    Calculate appropriate font size based on video resolution.
+    Calculate appropriate font size for SRT subtitles based on video resolution.
 
     Args:
         resolution: Tuple of (width, height)
 
     Returns:
-        Recommended font size
+        Recommended font size for SRT
     """
     height = resolution[1]
 
@@ -378,6 +413,58 @@ def calculate_font_size(resolution: tuple) -> int:
         return 28
     else:
         return 32
+
+
+def calculate_ass_font_size(resolution: tuple, base_size: int = 75) -> int:
+    """
+    Calculate appropriate ASS font size based on video resolution.
+
+    ASS uses PlayRes (1920x1080) coordinate system, so font size needs to be
+    scaled inversely with actual video height to maintain visual consistency.
+
+    Args:
+        resolution: Tuple of (width, height)
+        base_size: Base font size for 1080p (default: 75)
+
+    Returns:
+        Recommended font size for ASS subtitles
+
+    Examples:
+        480p  → 150px (2x base)
+        720p  → 100px (1.33x base)
+        1080p → 75px  (1x base)
+    """
+    height = resolution[1]
+
+    # Calculate scaling factor: base_size * (1080 / actual_height)
+    # This ensures font appears the same visual size regardless of resolution
+    scale_factor = 1080 / height
+    font_size = int(base_size * scale_factor)
+
+    # Clamp to reasonable range
+    font_size = max(50, min(font_size, 200))
+
+    return font_size
+
+
+
+def calculate_ass_font_size(resolution: tuple) -> int:
+    """
+    Calculate ASS font size based on video resolution.
+    Returns larger values suitable for ASS rendering.
+    """
+    height = resolution[1]
+    
+    # Scale font size based on video height (ASS native pixels)
+    if height <= 480:
+        return 40
+    elif height <= 720:
+        return 60
+    elif height <= 1080:
+        return 85  # Aggressive size for 1080p
+    else:
+        # 4K and beyond
+        return 120
 
 
 if __name__ == "__main__":

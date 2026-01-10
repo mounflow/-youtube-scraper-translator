@@ -38,6 +38,7 @@ def download_video(
     ydl_opts = {
         # Force single MP4 file format to avoid HLS fragments (VPN environment fix)
         'format': f'best[height<={quality}][ext=mp4]/best[ext=mp4]/best[height<=480][ext=mp4]/best[height<=360]',
+        # Default outtmpl (will be overridden)
         'outtmpl': str(DOWNLOADS_DIR / '%(title)s.%(ext)s'),
         'quiet': False,
         'no_warnings': False,
@@ -68,36 +69,71 @@ def download_video(
             'subtitlesformat': 'srt',
         })
 
+    # Step 1: Pre-fetch title to accept clean filename
+    clean_title = "video"
+    try:
+        logger.info("Resolving video title...")
+        # Use a separate options dict for pre-fetch
+        fetch_opts = {
+            'quiet': True,
+            'nocheckcertificate': True,
+            'retries': 3
+        }
+        if cookies_from_browser:
+            fetch_opts['cookiesfrombrowser'] = (cookies_from_browser,)
+        elif cookies_file:
+            fetch_opts['cookiefile'] = cookies_file
+            
+        with yt_dlp.YoutubeDL(fetch_opts) as ydl_temp:
+             info_temp = ydl_temp.extract_info(url, download=False)
+             raw_title = info_temp.get('title', 'video')
+             clean_title = sanitize_filename(raw_title)
+             
+        # ENFORCE SAFE FILENAME
+        ydl_opts['outtmpl'] = str(DOWNLOADS_DIR / f"{clean_title}.%(ext)s")
+        logger.info(f"Target filename: {clean_title}")
+        
+    except Exception as e:
+        logger.error(f"Failed to resolve video title: {e}")
+        return None
+    
     for attempt in range(retry + 1):
         try:
             logger.info(f"Downloading from: {url} (Attempt {attempt + 1}/{retry + 1})")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                # Extract info to get title
-                info = ydl.extract_info(url, download=False)
-                title = sanitize_filename(info.get('title', 'video'))
-
                 # Download video
                 ydl.download([url])
 
+                # Since we enforced the filename, we can now reliably find it
+                final_title = clean_title
+                
                 # Find downloaded files
-                video_file = find_video_file(title)
-                subtitle_file = find_subtitle_file(title)
+                video_file = find_video_file(final_title)
+                subtitle_file = find_subtitle_file(final_title)
 
                 if not video_file:
-                    logger.error(f"Video file not found after download")
+                    logger.error(f"Video file not found after download: {final_title}")
                     continue
 
                 # Validate file size
                 if not validate_file_size(video_file):
                     logger.error(f"Downloaded video is too small or corrupted: {video_file}")
                     continue
+                
+                # Get duration
+                duration = 0
+                try:
+                    if 'info_temp' in locals():
+                        duration = info_temp.get('duration', 0)
+                except:
+                    pass
 
                 result = {
                     'video': video_file,
                     'subtitle': subtitle_file,
-                    'title': title,
-                    'duration': info.get('duration', 0),
+                    'title': final_title,
+                    'duration': duration,
                 }
 
                 if subtitle_file:
@@ -112,10 +148,8 @@ def download_video(
         except Exception as e:
             logger.error(f"Download attempt {attempt + 1} failed: {e}")
             logger.error(f"  URL: {url}")
-            logger.error(f"  Hint: Check if URL is valid, cookies are working, or try with VPN")
             if attempt == retry:
                 logger.error(f"All {retry + 1} download attempts failed")
-                return None
 
     return None
 
@@ -213,16 +247,3 @@ def extract_audio(video_path: Path, output_dir: Optional[Path] = None) -> Option
     except Exception as e:
         logger.error(f"Error extracting audio: {e}")
         return None
-
-
-if __name__ == "__main__":
-    # Test download
-    test_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    result = download_video(test_url)
-
-    if result:
-        print(f"\nDownload successful:")
-        print(f"  Video: {result['video']}")
-        print(f"  Subtitle: {result['subtitle']}")
-        print(f"  Title: {result['title']}")
-        print(f"  Duration: {result['duration']}s")
