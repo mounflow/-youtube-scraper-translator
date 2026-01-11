@@ -18,7 +18,8 @@ def download_video(
     sub_lang: str = "en",
     retry: int = 2,
     cookies_from_browser: Optional[str] = None,
-    cookies_file: Optional[str] = None
+    cookies_file: Optional[str] = None,
+    progress_callback = None
 ) -> Optional[Dict[str, Path]]:
     """
     Download YouTube video with subtitles.
@@ -31,26 +32,45 @@ def download_video(
         retry: Number of retry attempts if download fails
         cookies_from_browser: Browser to extract cookies from (e.g., 'chrome', 'firefox', 'edge')
         cookies_file: Path to cookie file in Netscape format
+        progress_callback: Optional function(float, str) to update progress (0.0-1.0) and status message
 
     Returns:
         Dictionary with paths to downloaded files, or None if failed
     """
+    from config import NODE_PATH
+    
+    def _yt_progress_hook(d):
+        if d['status'] == 'downloading':
+            try:
+                p = d.get('_percent_str', '0%').replace('%','')
+                progress = float(p) / 100
+                if progress_callback:
+                    progress_callback(progress * 0.5, f"Downloading: {d.get('_percent_str')} - {d.get('_eta_str', '?')}s left")
+            except:
+                pass
+        elif d['status'] == 'finished':
+            if progress_callback:
+                progress_callback(0.5, "Download complete. Processing...")
+
     ydl_opts = {
-        # Force single MP4 file format to avoid HLS fragments (VPN environment fix)
-        'format': f'best[height<={quality}][ext=mp4]/best[ext=mp4]/best[height<=480][ext=mp4]/best[height<=360]',
+        # Standard best quality selection
+        'format': f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]/best',
         # Default outtmpl (will be overridden)
         'outtmpl': str(DOWNLOADS_DIR / '%(title)s.%(ext)s'),
         'quiet': False,
         'no_warnings': False,
         'prefer_ffmpeg': True,
+        'progress_hooks': [_yt_progress_hook],
         # VPN environment tolerance
-        'external_downloader_args': ['-timeout', '600000'],  # 10 minutes timeout
+        'socket_timeout': 60,
         'nocheckcertificate': True,  # Skip certificate verification for VPN
-        'http_chunksize': '10485760',  # 10MB chunk size
-        # Disable hlsnative to avoid fragment download issues
-        'hls_prefer_native': False,
+        'http_chunksize': 10485760,  # 10MB chunk size
         'retries': 10,  # More retries
         'keepvideo': False,  # Don't keep intermediate files
+        'js_runtimes': {
+            'node': {'args': ['--no-warnings'], 'path': NODE_PATH},
+            'deno': {},
+        },
     }
 
     # Add cookies if specified
@@ -60,6 +80,23 @@ def download_video(
     elif cookies_file:
         ydl_opts['cookiefile'] = cookies_file
         logger.info(f"Using cookies from file: {cookies_file}")
+
+    # Set FFmpeg location
+    import os
+    ffmpeg_search_paths = [
+        os.environ.get("FFMPEG_PATH"),
+        r"D:\SofewareHome\aboutT\ffmpeg\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe",
+        r"C:\ffmpeg\bin\ffmpeg.exe",
+    ]
+    formatted_ffmpeg_dir = None
+    for path in ffmpeg_search_paths:
+        if path and Path(path).exists():
+           formatted_ffmpeg_dir = str(Path(path).parent)
+           break
+    
+    if formatted_ffmpeg_dir:
+         ydl_opts['ffmpeg_location'] = formatted_ffmpeg_dir
+         logger.info(f"Using FFmpeg location: {formatted_ffmpeg_dir}")
 
     if download_subs:
         ydl_opts.update({

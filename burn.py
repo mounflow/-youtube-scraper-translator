@@ -13,6 +13,7 @@ logger = setup_logger("burn")
 # Find FFmpeg executable path
 FFMPEG_PATH = None
 _common_paths = [
+    r"D:\SofewareHome\aboutT\ffmpeg\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe",
     r"D:\Tools\AboutUniversal\installffmpeg\ffmpeg-8.0.1-essentials_build\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe",
     r"C:\ffmpeg\bin\ffmpeg.exe",
     r"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
@@ -109,10 +110,14 @@ def burn_subtitles(
     try:
         import ffmpeg
 
-        # Update ffmpeg binary path
+        from config import FFMPEG_PATH
+        
+        # Update ffmpeg binary path - ensure it's in PATH for ffmpeg-python
         if FFMPEG_PATH != 'ffmpeg':
-            import ffmpeg._nodes
-            ffmpeg._nodes.get_ffmpeg_bin = lambda: FFMPEG_PATH
+            ffmpeg_dir = str(Path(FFMPEG_PATH).parent)
+            if ffmpeg_dir not in os.environ['PATH']:
+                os.environ['PATH'] = ffmpeg_dir + os.pathsep + os.environ['PATH']
+                logger.debug(f"Added FFmpeg to PATH: {ffmpeg_dir}")
 
         logger.info(f"Burning subtitles into video: {video_path.name}")
 
@@ -196,20 +201,15 @@ def burn_subtitles(
                 if temp_subtitle.exists():
                     temp_subtitle.unlink()
 
-    except ImportError:
-        # Cleanup before fallback
+    except ImportError as e:
+        # Cleanup before exit
         os.chdir(original_dir)
         if temp_subtitle.exists():
             temp_subtitle.unlink()
 
-        logger.error("ffmpeg-python not installed. Run: pip install ffmpeg-python")
-
-        # Fallback to subprocess call
-        try:
-            return _burn_with_subprocess(video_path, subtitle_path, output_path, style_str, preview_only)
-        except Exception as e:
-            logger.error(f"Error burning subtitles with subprocess: {e}")
-            return None
+        logger.critical(f"ffmpeg-python import failed: {e}")
+        logger.critical("Run: pip install ffmpeg-python")
+        return None
 
     except Exception as e:
         # Cleanup on error

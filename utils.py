@@ -33,8 +33,13 @@ def setup_logger(name: str = "youtube_processor") -> logging.Logger:
     Returns:
         Configured logger instance
     """
+    from config import LOG_LEVEL
+
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    
+    # Map string level to logging constant
+    level = getattr(logging, LOG_LEVEL, logging.INFO)
+    logger.setLevel(level)
 
     # Prevent duplicate handlers
     if logger.handlers:
@@ -43,15 +48,15 @@ def setup_logger(name: str = "youtube_processor") -> logging.Logger:
     # Log file with timestamp
     log_file = LOGS_DIR / f"{name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
-    # File handler
+    # File handler (Always DEBUG for file)
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler.setFormatter(file_formatter)
 
-    # Console handler
+    # Console handler (Use configured level)
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
+    console_handler.setLevel(level)
     console_formatter = logging.Formatter('%(levelname)s: %(message)s')
     console_handler.setFormatter(console_formatter)
 
@@ -61,17 +66,22 @@ def setup_logger(name: str = "youtube_processor") -> logging.Logger:
     return logger
 
 
-def validate_file_size(file_path: Path, min_size_mb: float = 5.0) -> bool:
+
+def validate_file_size(file_path: Path, min_size_mb: Optional[float] = None) -> bool:
     """
     Validate if file size meets minimum requirement.
 
     Args:
         file_path: Path to the file
-        min_size_mb: Minimum size in megabytes
+        min_size_mb: Minimum size in megabytes (default: from config)
 
     Returns:
         True if file size >= min_size_mb, False otherwise
     """
+    from config import MIN_VIDEO_SIZE_MB
+    
+    if min_size_mb is None:
+        min_size_mb = MIN_VIDEO_SIZE_MB
     if not file_path.exists():
         return False
 
