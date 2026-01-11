@@ -4,7 +4,8 @@ Searches YouTube videos based on keywords with configurable filters.
 """
 
 import yt_dlp
-from typing import List, Dict, Optional
+import time
+from typing import List, Dict, Optional, Tuple
 from utils import setup_logger, DOWNLOADS_DIR
 
 logger = setup_logger("search")
@@ -19,7 +20,7 @@ def search_videos(
     cookies_from_browser: Optional[str] = None,
     cookies_file: Optional[str] = None,
     no_filter: bool = False
-) -> List[Dict]:
+) -> Tuple[List[Dict], float]:
     """
     Search YouTube videos based on query and filters.
 
@@ -34,12 +35,16 @@ def search_videos(
         no_filter: If True, skip duration and date filters
 
     Returns:
-        List of video information dictionaries
+        Tuple containing:
+            - List of video information dictionaries
+            - Float representing search execution time in seconds
     """
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
-        'extract_flat': 'in_search',
+        'extract_flat': True, # Changed from 'in_search'
+        'force_generic_extractor': False,
+        'noplaylist': True,
         'format': 'best',
     }
 
@@ -53,6 +58,7 @@ def search_videos(
 
     search_query = f"ytsearch{max_results}:{query}"
 
+    start_time = time.time()
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             logger.info(f"Searching for: {query}")
@@ -60,9 +66,6 @@ def search_videos(
 
             info = ydl.extract_info(search_query, download=False)
 
-            if not info or 'entries' not in info:
-                logger.warning("No results found")
-                return []
 
             results = []
             for entry in info['entries']:
@@ -82,18 +85,20 @@ def search_videos(
                         'view_count': entry.get('view_count', 0),
                         'description': entry.get('description', '')[:200] + '...' if entry.get('description') else 'No description',
                         'upload_date': entry.get('upload_date', 'Unknown'),
+                        'thumbnail': entry.get('thumbnail', ''),
                     }
                     results.append(video_info)
 
             # Sort by view count (descending)
             results.sort(key=lambda x: x.get('view_count', 0), reverse=True)
-
-            logger.info(f"Found {len(results)} videos matching criteria")
-            return results
+            
+            duration = time.time() - start_time
+            logger.info(f"Found {len(results)} videos in {duration:.2f}s")
+            return results, duration
 
     except Exception as e:
         logger.error(f"Error searching videos: {e}")
-        return []
+        return [], 0.0
 
 
 def format_duration(seconds: int) -> str:
@@ -106,6 +111,7 @@ def format_duration(seconds: int) -> str:
     Returns:
         Formatted duration string (e.g., "12:34")
     """
+    seconds = int(seconds)
     minutes = seconds // 60
     secs = seconds % 60
     return f"{minutes}:{secs:02d}"

@@ -161,7 +161,7 @@ def handle_search(query: str, cookies_from_browser: str = None, cookies_file: st
     # Convert "none" string to None for upload_date
     effective_upload_date = None if upload_date == "none" else upload_date
 
-    results = search_videos(
+    results_tuple = search_videos(
         query=query,
         max_results=10 if no_filter else 3,  # More results when no filter
         duration_min=duration_min,
@@ -171,6 +171,9 @@ def handle_search(query: str, cookies_from_browser: str = None, cookies_file: st
         cookies_file=cookies_file,
         no_filter=no_filter
     )
+    
+    # search_videos returns (results, duration)
+    results, _ = results_tuple
 
     display_results(results)
 
