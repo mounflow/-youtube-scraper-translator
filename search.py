@@ -86,6 +86,7 @@ def search_videos(
                         'description': entry.get('description', '')[:200] + '...' if entry.get('description') else 'No description',
                         'upload_date': entry.get('upload_date', 'Unknown'),
                         'thumbnail': entry.get('thumbnail', ''),
+                        'channel': entry.get('channel') or entry.get('uploader') or 'Unknown',
                     }
                     results.append(video_info)
 

@@ -1,11 +1,10 @@
 """
 Web UI for YouTube Scraper & Translator using Streamlit.
-Connects to the local API server.
+Light and airy design with modern aesthetics.
 """
 
 import streamlit as st
 import requests
-import pandas as pd
 import time
 from typing import List, Dict
 
@@ -19,55 +18,257 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- Custom CSS ---
+# --- High-End Minimalist Architectural Design ---
+# Palette: Matte Cloud White (#FAFBFC) + Micro-cement Grey (#E8EAED)
+# Style: High-key, low-contrast, calm, restrained, modern, breathable
 st.markdown("""
 <style>
-    /* Global Theme */
+    /* === BASE: Matte Cloud White Background === */
     .stApp {
-        background-color: #0E1117;
+        background-color: #FAFBFC;
+        background-image: linear-gradient(180deg, #FAFBFC 0%, #F5F6F8 100%);
     }
     
-    /* Card Style */
-    .video-card {
-        background-color: #1E2129;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 20px;
-        border: 1px solid #30333D;
-        transition: transform 0.2s;
-    }
-    .video-card:hover {
-        border-color: #FF4B4B;
-    }
-    
-    /* Queue Item */
-    .queue-item {
-        background-color: #262730;
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 8px;
-        border-left: 3px solid #FF4B4B;
+    /* === FLOATING CARDS: Frosted Glass Effect === */
+    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"] {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 12px;
+        border: 0.5px solid rgba(0, 0, 0, 0.04);
+        box-shadow: 
+            0 1px 3px rgba(0, 0, 0, 0.02),
+            0 8px 32px rgba(0, 0, 0, 0.03);
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
     }
     
-    /* Buttons */
-    .stButton>button {
-        width: 100%;
-        border-radius: 5px;
-        font-weight: 600;
+    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+            0 2px 6px rgba(0, 0, 0, 0.03),
+            0 16px 48px rgba(0, 0, 0, 0.06);
+        border-color: rgba(0, 0, 0, 0.06);
     }
     
-    /* Top Bar */
-    .search-container {
-        padding: 20px 0;
-    }
-    
-    /* Status indicators */
-    .status-badge {
-        display: inline-block;
-        padding: 2px 8px;
+    /* === IMAGES: Soft Ambient Shadow === */
+    [data-testid="stImage"] {
         border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    }
+    
+    [data-testid="stImage"] img {
+        border-radius: 12px;
+    }
+    
+    /* === BUTTONS: Minimal Ghost Style === */
+    .stButton>button {
+        background: transparent;
+        color: #3C4043;
+        border: 0.5px solid rgba(0, 0, 0, 0.08);
+        border-radius: 24px;
+        padding: 10px 24px;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+    
+    .stButton>button:hover {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.12);
+        transform: translateY(-1px);
+    }
+    
+    .stButton>button[kind="primary"] {
+        background: #3C4043;
+        color: #FFFFFF;
+        border: none;
+        box-shadow: 0 2px 8px rgba(60, 64, 67, 0.15);
+    }
+    
+    .stButton>button[kind="primary"]:hover {
+        background: #2D3033;
+        box-shadow: 0 4px 16px rgba(60, 64, 67, 0.2);
+    }
+    
+    /* === LINK BUTTONS: Subtle === */
+    .stLinkButton>a {
+        background: rgba(0, 0, 0, 0.03);
+        color: #5F6368 !important;
+        border-radius: 20px;
+        padding: 8px 20px;
         font-size: 12px;
-        font-weight: bold;
+        font-weight: 500;
+        text-decoration: none;
+        letter-spacing: 0.2px;
+        transition: all 0.3s ease;
+    }
+    
+    .stLinkButton>a:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #3C4043 !important;
+    }
+    
+    /* === SUCCESS: Soft Mint === */
+    .stSuccess {
+        background: rgba(52, 168, 83, 0.08);
+        color: #1E8E3E;
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 12px;
+        border: 0.5px solid rgba(52, 168, 83, 0.15);
+    }
+    
+    /* === PROGRESS BAR: Hairline === */
+    .stProgress {
+        height: 3px;
+    }
+    
+    .stProgress > div {
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 2px;
+    }
+    
+    .stProgress > div > div {
+        background: linear-gradient(90deg, #5F6368 0%, #3C4043 100%);
+        border-radius: 2px;
+    }
+    
+    /* === TYPOGRAPHY: Light & Airy === */
+    h1 {
+        font-size: 28px;
+        font-weight: 300;
+        letter-spacing: -0.5px;
+        color: #202124;
+        margin-bottom: 8px;
+    }
+    
+    h2 {
+        font-size: 18px;
+        font-weight: 400;
+        letter-spacing: -0.2px;
+        color: #3C4043;
+        margin-bottom: 16px;
+    }
+    
+    h3 {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.1px;
+        color: #5F6368;
+        margin-bottom: 12px;
+    }
+    
+    p, span {
+        font-size: 13px;
+        color: #5F6368;
+        line-height: 1.6;
+    }
+    
+    /* === CAPTION: Whisper Grey === */
+    .stCaption {
+        font-size: 11px !important;
+        color: #9AA0A6 !important;
+        letter-spacing: 0.3px;
+    }
+    
+    /* === INPUT: Minimal Hairline === */
+    .stTextInput>div>div>input {
+        background: rgba(255, 255, 255, 0.8);
+        border: 0.5px solid rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 14px;
+        color: #3C4043;
+        transition: all 0.3s ease;
+    }
+    
+    .stTextInput>div>div>input:focus {
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.02);
+    }
+    
+    .stTextInput>div>div>input::placeholder {
+        color: #BDC1C6;
+    }
+    
+    /* === SELECTBOX: Clean === */
+    .stSelectbox>div>div {
+        background: rgba(255, 255, 255, 0.8);
+        border: 0.5px solid rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        font-size: 13px;
+    }
+    
+    /* === EXPANDER: Weightless === */
+    .streamlit-expanderHeader {
+        background: transparent;
+        border: none;
+        font-size: 13px;
+        font-weight: 500;
+        color: #5F6368;
+        padding: 12px 0;
+    }
+    
+    /* === DIVIDER: Hairline === */
+    hr {
+        margin: 24px 0;
+        border: none;
+        height: 0.5px;
+        background: rgba(0, 0, 0, 0.04);
+    }
+    
+    /* === SPACING: Expansive Negative Space === */
+    .element-container {
+        margin-bottom: 8px;
+    }
+    
+    [data-testid="column"] {
+        padding: 0 12px;
+    }
+    
+    /* === SCROLLBAR: Invisible === */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.15);
+    }
+    
+    /* === VIDEO PLAYER === */
+    video {
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* === INFO/WARNING: Soft === */
+    .stInfo {
+        background: rgba(66, 133, 244, 0.06);
+        border: 0.5px solid rgba(66, 133, 244, 0.12);
+        border-radius: 12px;
+        color: #1A73E8;
+    }
+    
+    .stWarning {
+        background: rgba(251, 188, 4, 0.06);
+        border: 0.5px solid rgba(251, 188, 4, 0.15);
+        border-radius: 12px;
+        color: #E37400;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -79,38 +280,41 @@ if 'tasks' not in st.session_state:
     st.session_state.tasks = []
 if 'search_results' not in st.session_state:
     st.session_state.search_results = []
+if 'auto_refresh' not in st.session_state:
+    st.session_state.auto_refresh = True  # Default ON for real-time progress
 
-# --- Layout ---
+# --- Header ---
+st.title("🎬 YouTube Scraper & Translator")
+st.caption("✨ Light & Modern Design")
 
-# 1. Top Bar: Search & Filters
+st.divider()
+
+# --- Search Bar ---
 with st.container():
-    st.title("🎬 YouTube Scraper & Chinese Adapter")
-    
     col_s1, col_s2, col_s3 = st.columns([3, 1, 1])
     with col_s1:
-        query = st.text_input("Search Query", placeholder="Enter keywords...", label_visibility="collapsed")
+        query = st.text_input("🔍 Search YouTube", placeholder="Enter keywords...", label_visibility="collapsed")
     with col_s2:
-        date_filter = st.selectbox("Upload Date", 
+        date_filter = st.selectbox("📅 Upload Date", 
                                  options=["today", "now-7days", "now-30days", "now-1year", "all"],
                                  index=2,
                                  label_visibility="collapsed")
     with col_s3:
-        search_btn = st.button("Search Videos", type="primary")
+        search_btn = st.button("🔎 Search", type="primary", use_container_width=True)
 
-    with st.expander("More Filters", expanded=False):
-        duration_range = st.slider("Duration (minutes)", 0, 60, (5, 20))
+    with st.expander("⚙️ Advanced Filters", expanded=False):
+        duration_range = st.slider("⏱️ Duration (minutes)", 0, 60, (1, 60))
     
     if search_btn and query:
-        with st.spinner("Searching YouTube..."):
+        with st.spinner("🔍 Searching YouTube..."):
             try:
                 payload = {
                     "query": query, 
-                    "max_results": 10,
+                    "max_results": 20,
                     "duration_min": duration_range[0] * 60,
                     "duration_max": duration_range[1] * 60,
                     "upload_date": date_filter if date_filter != "all" else None
                 }
-                # Remove None values
                 payload = {k: v for k, v in payload.items() if v is not None}
                 
                 response = requests.post(f"{API_URL}/search", params=payload)
@@ -118,139 +322,193 @@ with st.container():
                     data = response.json()
                     st.session_state.search_results = data.get("items", [])
                     latency = data.get("latency", 0.0)
-                    st.toast(f"Search completed in {latency:.2f}s", icon="⚡")
+                    st.toast(f"✅ Found {len(st.session_state.search_results)} videos in {latency:.2f}s", icon="⚡")
                 else:
-                    st.error("Search failed. Check API.")
+                    st.error("❌ Search failed. Check API.")
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"❌ Error: {e}")
 
 st.divider()
 
-# 2. Main Content: Left (Results) & Right (Workspace)
-c_left, c_right = st.columns([1.5, 1])
+# --- Main Layout ---
+c_left, c_right = st.columns([2, 1])
 
-# --- LEFT COLUMN: Search Results ---
+# --- LEFT: Search Results ---
 with c_left:
-    st.subheader(f"Search Results ({len(st.session_state.search_results)})")
+    st.subheader(f"🎥 Results ({len(st.session_state.search_results)})")
     
     if not st.session_state.search_results:
-        st.info("Try searching for something!")
-    
-    for vid in st.session_state.search_results:
-        # Check if already in queue
-        is_in_queue = any(v['url'] == vid['url'] for v in st.session_state.queue)
-        
-        # Grid layout for card
-        with st.container():
-            col_img, col_info, col_act = st.columns([2, 3, 1.2])
+        st.info("🎬 Search for YouTube videos to get started!")
+    else:
+        # Grid: 2 videos per row
+        for i in range(0, len(st.session_state.search_results), 2):
+            cols = st.columns(2, gap="medium")
             
-            with col_img:
-                st.image(vid['thumbnail_url'], use_container_width=True)
-            
-            with col_info:
-                st.markdown(f"**{vid['title']}**")
-                st.caption(f"⏱️ {vid['duration']}  |  👀 {vid['views']}  |  📅 {vid['upload_date']}")
-                st.markdown(f"<p style='font-size:12px; color:#aaa'>{vid['description'][:100]}...</p>", unsafe_allow_html=True)
-            
-            with col_act:
-                st.write("") # Spacer
-                if is_in_queue:
-                    st.success("Added")
-                else:
-                    if st.button("➕ Add", key=f"add_{vid['url']}"):
-                        st.session_state.queue.append(vid)
-                        st.rerun()
+            for col_idx, col in enumerate(cols):
+                vid_idx = i + col_idx
+                if vid_idx >= len(st.session_state.search_results):
+                    break
+                    
+                vid = st.session_state.search_results[vid_idx]
+                is_in_queue = any(v['url'] == vid['url'] for v in st.session_state.queue)
                 
-                # Preview Link
-                st.markdown(f"[Preview Video]({vid['url']})")
-                
-        st.markdown("---")
+                with col:
+                    with st.container():
+                        # Thumbnail
+                        st.image(vid['thumbnail_url'], use_container_width=True)
+                        
+                        # Title
+                        title = vid['title']
+                        if len(title) > 50:
+                            title = title[:47] + "..."
+                        st.markdown(f"**{title}**")
+                        
+                        # Metadata
+                        st.caption(f"⏱️ {vid['duration']} · 👁️ {vid['views']}")
+                        
+                        # Buttons
+                        btn_col1, btn_col2 = st.columns([1, 1])
+                        with btn_col1:
+                            if is_in_queue:
+                                st.success("✅ In Queue", icon="✅")
+                            else:
+                                if st.button("➕ Add", key=f"add_{vid['url']}", use_container_width=True):
+                                    st.session_state.queue.append(vid)
+                                    st.rerun()
+                        with btn_col2:
+                            st.link_button("🔗 View", vid['url'], use_container_width=True)
 
-# --- RIGHT COLUMN: Workspace ---
+# --- RIGHT: Workspace ---
 with c_right:
-    # 1. Queue Section
-    with st.container():
-        st.subheader("📋 Task Queue")
+    # Queue
+    st.subheader(f"📋 Queue ({len(st.session_state.queue)})")
+    
+    if not st.session_state.queue:
+        st.info("📭 Queue is empty")
+    else:
+        for i, item in enumerate(st.session_state.queue):
+            with st.container():
+                qc1, qc2 = st.columns([5, 1])
+                with qc1:
+                    title = item['title']
+                    if len(title) > 30:
+                        title = title[:27] + "..."
+                    st.markdown(f"**{i+1}.** {title}")
+                with qc2:
+                    if st.button("🗑️", key=f"del_{i}", help="Remove"):
+                        st.session_state.queue.pop(i)
+                        st.rerun()
         
-        if not st.session_state.queue:
-            st.info("Empty. Add videos from search.")
-        else:
-            # Use form to batch delete or just list them cleaner
-            for i, item in enumerate(st.session_state.queue):
-                with st.container():
-                    qc1, qc2 = st.columns([5, 1])
-                    with qc1:
-                         st.markdown(f"**{i+1}. {item['title'][:40]}...**")
-                    with qc2:
-                         if st.button("🗑️", key=f"del_{i}", help="Remove from queue"):
-                             st.session_state.queue.pop(i)
-                             st.rerun()
-            
-            if st.button("Clear All", type="secondary"):
-                st.session_state.queue = []
-                st.rerun()
+        if st.button("🧹 Clear All", use_container_width=True):
+            st.session_state.queue = []
+            st.rerun()
 
     st.divider()
 
-    # 2. Config Section
-    with st.expander("⚙️ Processing Settings", expanded=True):
-        sc1, sc2 = st.columns(2)
-        with sc1:
-            font_color = st.color_picker("Color", "#FFFFFF")
-            position = st.selectbox("Pos", ["bottom", "mid", "top"], index=0)
-        with sc2:
-            font_size = st.number_input("Size", 20, 80, 40)
-            langs = st.multiselect("Lang", ["zh", "en"], ["zh", "en"])
+    # Settings
+    with st.expander("⚙️ Settings", expanded=True):
+        font_size = st.slider("📏 Font Size", 20, 80, 40)
+        position = st.selectbox("📍 Position", ["bottom", "mid", "top"], index=0)
 
     st.write("")
     
-    # 3. Action Section
-    if st.button("🚀 Start Batch Processing", type="primary", disabled=len(st.session_state.queue) == 0):
+    # Start Processing
+    if st.button("🚀 Start Processing", type="primary", disabled=len(st.session_state.queue) == 0, use_container_width=True):
         for vid in st.session_state.queue:
             payload = {
                 "url": vid['url'],
                 "style": {
-                    "font_color": font_color,
+                    "font_size": font_size,
                     "position": position,
-                    "languages": ["zh", "en"], # Only fixed for demo, real mapping needed if multiselect changes
-                    "font_size": font_size
                 }
             }
             try:
                 requests.post(f"{API_URL}/tasks", json=payload)
             except:
-                st.error("Failed to start task")
+                st.error("❌ Failed to start task")
         
-        st.session_state.tasks_started = True
-        st.session_state.queue = [] # Clear queue after start
+        st.session_state.queue = []
+        st.toast("✅ Tasks started!", icon="🚀")
         st.rerun()
 
-    # 4. Progress Section
+    st.divider()
+
+    # Progress
     st.subheader("📊 Progress")
     
-    # Auto-refresh mechanism
-    if st.button("🔄 Refresh"):
-        st.rerun()
+    col_r1, col_r2 = st.columns([1, 1])
+    with col_r1:
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.rerun()
+    with col_r2:
+        auto_refresh = st.checkbox("Auto", value=st.session_state.auto_refresh)
+        st.session_state.auto_refresh = auto_refresh
 
     # Fetch tasks
     try:
         r = requests.get(f"{API_URL}/tasks")
         if r.status_code == 200:
             tasks = r.json()
-            # Show latest tasks first
-            for task in reversed(tasks[-5:]): # Show last 5
-                st.markdown(f"**Task: {task['task_id'][:8]}**")
-                st.progress(task['progress'])
-                st.caption(f"Status: {task['status']} | {task['message']}")
-                if task.get("result_path"):
-                    st.success(f"Output: {task['result_path']}")
-                st.markdown("---")
+            if not tasks:
+                st.info("🎯 No active tasks")
+            else:
+                # Show progress for running tasks
+                running_tasks = [t for t in tasks if t['status'] in ['pending', 'running']]
+                for task in reversed(running_tasks[-3:]):
+                    with st.container():
+                        # Task header with stage indicator
+                        stage = task.get('stage', 'unknown')
+                        stage_emoji = {
+                            'download': '📥',
+                            'subtitle': '📝',
+                            'translation': '🌐',
+                            'burning': '🔥',
+                            'completed': '✅',
+                            'failed': '❌'
+                        }.get(stage, '⚙️')
+                        
+                        st.caption(f"{stage_emoji} **{task.get('message', 'Processing...')}**")
+                        
+                        # Progress bar with percentage
+                        progress = task.get('progress', 0)
+                        st.progress(progress, text=f"{int(progress*100)}%")
+                        
+                        # Stage breakdown
+                        col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+                        with col_s1:
+                            st.caption("📥" if progress >= 0.3 else "⬜")
+                        with col_s2:
+                            st.caption("📝" if progress >= 0.4 else "⬜")
+                        with col_s3:
+                            st.caption("🌐" if progress >= 0.5 else "⬜")
+                        with col_s4:
+                            st.caption("🔥" if progress >= 0.5 else "⬜")
+                        
+                        st.markdown("---")
+                
+                # Show completed videos
+                completed_tasks = [t for t in tasks if t['status'] == 'completed' and 'video_filename' in t]
+                if completed_tasks:
+                    st.divider()
+                    st.subheader("🎬 Completed Videos")
+                    
+                    for task in reversed(completed_tasks[-3:]):  # Show last 3 completed
+                        with st.expander(f"📹 {task.get('video_filename', 'Video')[:40]}...", expanded=False):
+                            video_url = f"http://127.0.0.1:8000/output/{task['video_filename']}"
+                            st.video(video_url)
+                            st.caption(f"✅ Completed: {task.get('message', 'Done')}")
+                            
+                            # Download button
+                            col_d1, col_d2 = st.columns([1, 1])
+                            with col_d1:
+                                st.link_button("📥 Download", video_url, use_container_width=True)
+                            with col_d2:
+                                if st.button("🗑️ Remove", key=f"remove_{task['task_id']}", use_container_width=True):
+                                    st.toast("⚠️ Delete feature coming soon")
     except:
-        st.error("Cannot connect to API")
+        st.warning("⚠️ Cannot connect to API")
 
-    # Shutdown Button at bottom
-    st.write("")
-    st.write("")
-    if st.button("🛑 System Shutdown"):
-         requests.post(f"{API_URL}/shutdown")
-         st.stop()
+# Auto-refresh
+if st.session_state.auto_refresh:
+    time.sleep(1)  # Fast refresh for real-time progress
+    st.rerun()

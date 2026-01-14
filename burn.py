@@ -42,7 +42,8 @@ def burn_subtitles(
     output_path: Optional[Path] = None,
     style: Optional[Dict] = None,
     preview_only: bool = False,
-    force_style: bool = False
+    force_style: bool = False,
+    progress_callback = None
 ) -> Optional[Path]:
     """
     Burn subtitles into video using ffmpeg.
@@ -54,6 +55,7 @@ def burn_subtitles(
         style: Dictionary with subtitle style options (only used for SRT)
         preview_only: If True, only generate preview image
         force_style: If True, apply force_style (NOT recommended for ASS files)
+        progress_callback: Optional callback function(float, str) for progress updates
 
     Returns:
         Path to output file or None if failed
@@ -102,6 +104,7 @@ def burn_subtitles(
 
     # Use just the filename (relative path from video's directory)
     subtitle_abs = temp_subtitle.name
+    video_filename = video_path.name  # Use just filename since we're in video's directory
 
     # For ASS format, don't use force_style (ASS has its own styling)
     # For SRT/VTT, use force_style for better rendering
@@ -135,17 +138,22 @@ def burn_subtitles(
                     vf_filter = f"subtitles={subtitle_abs}"
                     logger.info(f"Using ASS internal styling (no force_style)")
 
-                (
-                    ffmpeg
-                    .input(str(video_path), ss=10)
-                    .output(
-                        str(preview_path),
-                        vframes=1,
-                        vf=vf_filter
+                # Run with proper error handling
+                try:
+                    (
+                        ffmpeg
+                        .input(video_filename, ss=10)
+                        .output(
+                            str(preview_path),
+                            vframes=1,
+                            vf=vf_filter
+                        )
+                        .overwrite_output()
+                        .run(capture_stdout=True, capture_stderr=True)
                     )
-                    .overwrite_output()
-                    .run(quiet=True)
-                )
+                except ffmpeg.Error as e:
+                    logger.error(f"FFmpeg error: {e.stderr.decode('utf-8') if e.stderr else 'Unknown error'}")
+                    raise
 
                 if preview_path.exists():
                     logger.info(f"Preview saved to: {preview_path}")
@@ -164,25 +172,77 @@ def burn_subtitles(
             logger.info(f"Processing video (this may take a while)...")
 
             try:
+                # Get video duration for progress calculation
+                try:
+                    probe = ffmpeg.probe(video_filename)
+                    duration = float(probe['format']['duration'])
+                    total_frames = int(float(probe['streams'][0].get('nb_frames', 0)))
+                    if total_frames == 0:
+                        # Estimate from duration and fps
+                        fps = eval(probe['streams'][0].get('r_frame_rate', '25/1'))
+                        total_frames = int(duration * fps)
+                except:
+                    duration = 0
+                    total_frames = 0
+                
                 # Build filter
                 if use_force_style:
                     vf_filter = f"subtitles={subtitle_abs}:force_style='{style_str}'"
                 else:
-                    # For ASS files, rely on internal styling
                     vf_filter = f"subtitles={subtitle_abs}"
                     logger.info(f"Using ASS internal styling (no force_style)")
 
-                (
-                    ffmpeg
-                    .input(str(video_path))
-                    .output(
-                        str(output_path),
-                        vf=vf_filter,
-                        **{'c:v': 'libx264', 'c:a': 'copy', 'preset': 'medium'}
-                    )
-                    .overwrite_output()
-                    .run(quiet=False)  # Show progress
+                # Build ffmpeg command
+                import subprocess
+                cmd = [
+                    'ffmpeg',
+                    '-i', video_filename,
+                    '-vf', vf_filter,
+                    '-c:v', 'libx264',
+                    '-c:a', 'copy',
+                    '-preset', 'veryfast',
+                    '-crf', '23',
+                    '-vsync', 'cfr',
+                    '-async', '1',
+                    '-y',
+                    str(output_path)
+                ]
+                
+                # Run with progress monitoring
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    universal_newlines=True,
+                    bufsize=1
                 )
+                
+                # Monitor progress from stderr
+                import re
+                last_print_pct = 0
+                for line in process.stderr:
+                    # Parse frame number from FFmpeg output
+                    match = re.search(r'frame=\s*(\d+)', line)
+                    if match:
+                        current_frame = int(match.group(1))
+                        if total_frames > 0:
+                            progress = min(current_frame / total_frames, 0.99)
+                            pct = int(progress * 100)
+                            # Print every 5% for API to parse
+                            if pct >= last_print_pct + 5:
+                                print(f"[Burning] frame={current_frame} progress={pct}%", flush=True)
+                                last_print_pct = pct
+                            if progress_callback:
+                                progress_callback(progress, f"Burning: {pct}%")
+                        else:
+                            # No total frames, just print frame count
+                            if current_frame % 100 == 0:
+                                print(f"[Burning] frame={current_frame}", flush=True)
+                
+                process.wait()
+                
+                if process.returncode != 0:
+                    raise Exception(f"FFmpeg failed with code {process.returncode}")
 
                 if output_path.exists():
                     # Validate output
@@ -276,7 +336,10 @@ def _burn_with_subprocess(
                 '-vf', f"subtitles={subtitle_abs}:force_style='{style_str}'",
                 '-c:v', 'libx264',
                 '-c:a', 'copy',
-                '-preset', 'medium',
+                '-preset', 'veryfast',
+                '-crf', '23',
+                '-async', '1',
+                '-vsync', 'cfr',
                 str(output_path),
                 '-y'
             ]
