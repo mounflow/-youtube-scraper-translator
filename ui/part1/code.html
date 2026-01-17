@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>YouTube Search and Discovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00b1cc",
+                        "background-light": "#fafafa",
+                        "background-dark": "#121212",
+                        "surface": "#1E1E1E",
+                        "border-subtle": "#2A2A2A"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2A2A2A;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #00b1cc;
+        }
+        .video-card:hover {
+            box-shadow: 0 0 15px rgba(0, 177, 204, 0.15);
+            transform: translateY(-2px);
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex flex-col font-display">
+<!-- Global Navigation -->
+<nav class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-border-subtle px-6 py-3">
+<div class="max-w-[1600px] mx-auto flex items-center justify-between gap-8">
+<div class="flex items-center gap-3 shrink-0">
+<div class="bg-primary p-1.5 rounded-lg">
+<span class="material-symbols-outlined text-background-dark font-bold">query_stats</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight hidden md:block">YT Discovery<span class="text-primary">.</span></h1>
+</div>
+<div class="flex-1 max-w-2xl relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="w-full bg-slate-100 dark:bg-surface border-none focus:ring-2 focus:ring-primary rounded-lg pl-10 pr-4 py-2.5 text-sm placeholder-slate-500 transition-all" placeholder="Search YouTube videos for processing..." type="text" value="Latest tech trends 2024"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-2">
+<kbd class="hidden sm:inline-block px-1.5 py-0.5 text-xs font-semibold text-slate-500 bg-slate-200 dark:bg-border-subtle rounded">⌘K</kbd>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="hover:text-primary transition-colors" href="#">History</a>
+<div class="relative">
+<span class="absolute -top-1 -right-1 flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<a class="hover:text-primary transition-colors" href="#">Tasks</a>
+</div>
+</div>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg text-sm font-bold transition-all border border-primary/20">
+                    Exit Service
+                </button>
+<div class="h-10 w-10 rounded-full bg-surface border border-border-subtle overflow-hidden">
+<img alt="User avatar profile picture" class="w-full h-full object-cover" data-alt="Minimalist user profile avatar with geometric shapes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzZ4nPNTm1WImgoC0ZmF9V5Khm1KUL3GdaO-OxnsTSTk_j2xlUvKhLxuKMsE7-H_c6UHMNrzzzoKiljXCrj4kCCeeNx1JpOiXTp4PuK8haz_3UK1IFq6iJZDxMGNTzR4hii5UNVE-7LVFpnMp8V7pd8QTUfvJNkRury2pPxFGEBgfF6l-xPFSZgpsoToN427cj43SAz_lljUDqMYX3JOWc7CToPcemUeszW7w7EEqiZqkUT5XDOIh6fzvt9ESyetf0gjBVyiqTDg"/>
+</div>
+</div>
+</div>
+</nav>
+<main class="flex-1 flex flex-col max-w-[1600px] mx-auto w-full px-6 py-8">
+<!-- Filter Toolbar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div class="flex items-center gap-2 flex-wrap">
+<h2 class="text-2xl font-bold mr-4">Results</h2>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-surface border border-slate-200 dark:border-border-subtle hover:border-primary/50 transition-colors text-xs font-medium uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                    Sort by: Date
+                    <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-surface border border-slate-200 dark:border-border-subtle hover:border-primary/50 transition-colors text-xs font-medium uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+                    Popularity
+                    <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-surface border border-slate-200 dark:border-border-subtle hover:border-primary/50 transition-colors text-xs font-medium uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+                    Duration
+                    <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+<div class="h-6 w-px bg-slate-200 dark:bg-border-subtle mx-2"></div>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-background-dark text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">hd</span>
+                    4K Only
+                </button>
+</div>
+<div class="flex items-center gap-2 bg-slate-100 dark:bg-surface p-1 rounded-lg border border-slate-200 dark:border-border-subtle">
+<button class="p-1.5 rounded bg-white dark:bg-border-subtle text-primary shadow-sm">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</button>
+<button class="p-1.5 rounded text-slate-400 hover:text-slate-200">
+<span class="material-symbols-outlined text-[20px]">view_list</span>
+</button>
+</div>
+</div>
+<div class="flex gap-8 flex-col xl:flex-row">
+<!-- Grid Results -->
+<div class="flex-1">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Video Card 1 -->
+<div class="video-card group flex flex-col bg-slate-50 dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-xl overflow-hidden transition-all duration-300">
+<div class="relative aspect-video overflow-hidden">
+<div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center pointer-events-none">
+<span class="material-symbols-outlined text-primary text-5xl transform scale-75 group-hover:scale-100 transition-transform">play_circle</span>
+</div>
+<img alt="Thumbnail for AI in 2024 video" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Abstract representation of futuristic AI circuit patterns" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFdBEhlVGZNkrXEUvpHaGrG0tlwBWr3kXcjOCrteSfPPlIzB6QKi3lwAwLX6PWIYUOgqaVw3Q7koO0kCEdyj2DlVszcKE10lMoJ3Opm-64hC7CIeyqqfF6ZZfx3S-vQSpa0AnSeXiSjIW2rm9qUSCc7F7m96b9bPQ1KuOfxTJcYorOCnRXSfI1SD2-c-kEaCYX3qrySij4onkf1_DIWpXZNKMGsfpxJehvPCqHpyy8Py1PdNU4byj9gDpHRW58KpgYS1WuivfFJA"/>
+<span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">12:45</span>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">The Future of AI in 2024: Massive Leaps Ahead</h3>
+<div class="flex flex-col gap-1 mb-6">
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_circle</span> Tech Channel • 1.2M views
+                                </p>
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span> 10 hours ago
+                                </p>
+</div>
+<div class="mt-auto grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg border border-primary/40 text-primary text-xs font-bold hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    PREVIEW
+                                </button>
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold hover:brightness-110 transition-all shadow-md">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+                                    ADD TASK
+                                </button>
+</div>
+</div>
+</div>
+<!-- Video Card 2 -->
+<div class="video-card group flex flex-col bg-slate-50 dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-xl overflow-hidden transition-all duration-300">
+<div class="relative aspect-video overflow-hidden">
+<img alt="Thumbnail for Quantum Computing" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Stylized glowing atoms and mathematical equations" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVVmBHTz5mCVSmDqRI9xwx3S-jNCj0EEzhupftHelL6UMr9eczvXKR47WVOiIrZmYSD4pDKjhEQ9zrYAk_Q9rxK2EsJ5vDukzBj85UHEt74rHksJ8XYauNiy9I4v-IwZlxn_QCBwCFCpXyAuaAAf9VSJ-wv4xb185bwm5UHT2W3cDGYEiQiKxSxiK9N_MWVS2Zb9sNEyg-_ZZ5LM_CrvltCBg3a10V0gijCjUGEpZTYMcRraXCtdrLFyODby1XmGsvsrJEbUVS9Q"/>
+<span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">24:12</span>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">Quantum Computing: Explain It Like I'm Five</h3>
+<div class="flex flex-col gap-1 mb-6">
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_circle</span> Science Today • 800K views
+                                </p>
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span> 2 days ago
+                                </p>
+</div>
+<div class="mt-auto grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg border border-primary/40 text-primary text-xs font-bold hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    PREVIEW
+                                </button>
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold hover:brightness-110 transition-all shadow-md">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+                                    ADD TASK
+                                </button>
+</div>
+</div>
+</div>
+<!-- Video Card 3 -->
+<div class="video-card group flex flex-col bg-slate-50 dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-xl overflow-hidden transition-all duration-300">
+<div class="relative aspect-video overflow-hidden">
+<img alt="Thumbnail for Web Frameworks" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Code snippets floating over a colorful gradient background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAL7ptdyZDCsaHYbFsNojJm_giRgg-8wgZhr_CnyQH8J1Kdue38wsbjkWyPj3WO52s7qAoryC7-zwhmynYc1y6JBXBrpecwQ2xIj75u0KI2oUCFfvlq5Vb100dMlxekfSy9lHBA8_fG_Stjs6EZQb6cQCCG76OWMoQs9NF3jiOA42S2fZH0B1O1BYQZtVjMrVBu4XrLlQOsfsqoBwzDag33wW3ndTgfG7myBWvnOAU9WAvRz53zL0YDWECp7wpMzWfvb7HW1u41_w"/>
+<span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">15:30</span>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">Next-Gen Web Frameworks: Which to Choose?</h3>
+<div class="flex flex-col gap-1 mb-6">
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_circle</span> Dev Mastery • 450K views
+                                </p>
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span> 1 week ago
+                                </p>
+</div>
+<div class="mt-auto grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg border border-primary/40 text-primary text-xs font-bold hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    PREVIEW
+                                </button>
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold hover:brightness-110 transition-all shadow-md">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+                                    ADD TASK
+                                </button>
+</div>
+</div>
+</div>
+<!-- Video Card 4 -->
+<div class="video-card group flex flex-col bg-slate-50 dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-xl overflow-hidden transition-all duration-300">
+<div class="relative aspect-video overflow-hidden">
+<img alt="Thumbnail for Space Tech" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Rocket launch with dramatic smoke and light effects" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRDucugXYryqeyABD2JXqbzDnR30NXwuQP_4gx18pbsH9PnazDFVDr35rIpyuKoe8l7NVzZCfHEmHZMdPBz3qnogZ3nrpCZ1v0-znJEzBHaTicTd8ZvNIgIIvLhGAiRD4ttbozBHYJUdPX_1CtLltiA0FM9Ap0MdQp3PCi1xK0_GP5olAKWA0NS4tBVcF8_mu0C_iz_RvpBzWvRDVpXvJl26MSCiozuGuzO3cgaIPSEkYUwm2646ROI5wWy6PBD6KRc3c-2-R3rA"/>
+<span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">08:12</span>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">The Rise of Space Tech: Commercial Space Stations</h3>
+<div class="flex flex-col gap-1 mb-6">
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_circle</span> Galactic News • 2.1M views
+                                </p>
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span> 3 hours ago
+                                </p>
+</div>
+<div class="mt-auto grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg border border-primary/40 text-primary text-xs font-bold hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    PREVIEW
+                                </button>
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold hover:brightness-110 transition-all shadow-md">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+                                    ADD TASK
+                                </button>
+</div>
+</div>
+</div>
+<!-- Video Card 5 -->
+<div class="video-card group flex flex-col bg-slate-50 dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-xl overflow-hidden transition-all duration-300">
+<div class="relative aspect-video overflow-hidden">
+<img alt="Thumbnail for Sustainable Energy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Wind turbines and solar panels in a green field" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7UpnCTnlCir46pqrXQX8ejhFZpF5pQcgIy7dTZyyZEgB2V4YzZk9D6yr4JYtaQ2aon7agvFja0gbZjPQ4mn-XXLCAx88lwiPeloiHoLGyLeysMZLQdId3tu40YPyAl3BcDl_V-erEh_jfKzE08YBc9w1bpknDMuJgGqlyaz4fxTJkMVcjRQpqsXVMl6t8wo8kOAdZDcv0H0F9VeehslvfF_4r4z2KIdA--tvbp6ZspwuLeeOAMrtBxF29dp_lONfiek7f3RedRQ"/>
+<span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">19:44</span>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">Clean Energy 2024: Sustainable Solutions for Cities</h3>
+<div class="flex flex-col gap-1 mb-6">
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_circle</span> Eco Pulse • 300K views
+                                </p>
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span> 5 days ago
+                                </p>
+</div>
+<div class="mt-auto grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg border border-primary/40 text-primary text-xs font-bold hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    PREVIEW
+                                </button>
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold hover:brightness-110 transition-all shadow-md">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+                                    ADD TASK
+                                </button>
+</div>
+</div>
+</div>
+<!-- Video Card 6 -->
+<div class="video-card group flex flex-col bg-slate-50 dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-xl overflow-hidden transition-all duration-300">
+<div class="relative aspect-video overflow-hidden">
+<img alt="Thumbnail for Robotics" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Robotic arm performing surgical precision task" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7UcfdcIPRLV_IMp8yaGLteyl6Ri8YBMEaZY6tIOm7XGav6sPWpoG2BU1rDKIpGOjeAzrsAEZzdmEAdZo6nQ8oqjRyhVQ8bI_HpPu08f3B-4CGJN1e8Ypf_d8tO97iKe1yeGMUPm-jfZxQYjIsANy_ReA01Tfppci0Ub7Jo2kGX1Ars1d1zC0_FdrWu3O2jBcSCoLuIGu4x_HsuxgrnPhoBRwGU62wwUuUiL-7UXye0Z9YJL3bmB9bTo1QlIuy61SNx_Krc1zzqQ"/>
+<span class="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">31:05</span>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<h3 class="text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">Robotics in Healthcare: A Documentary</h3>
+<div class="flex flex-col gap-1 mb-6">
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_circle</span> MedTech • 150K views
+                                </p>
+<p class="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span> 1 month ago
+                                </p>
+</div>
+<div class="mt-auto grid grid-cols-2 gap-2">
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg border border-primary/40 text-primary text-xs font-bold hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    PREVIEW
+                                </button>
+<button class="flex items-center justify-center gap-2 py-2 rounded-lg bg-primary text-background-dark text-xs font-bold hover:brightness-110 transition-all shadow-md">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+                                    ADD TASK
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Sidebar -->
+<aside class="w-full xl:w-[380px] shrink-0">
+<div class="bg-slate-50 dark:bg-surface border border-slate-200 dark:border-border-subtle rounded-xl overflow-hidden sticky top-[100px]">
+<div class="p-5 border-b border-slate-200 dark:border-border-subtle flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">assignment</span>
+<h3 class="font-bold">Active Tasks</h3>
+</div>
+<span class="bg-primary/20 text-primary px-2 py-0.5 rounded text-xs font-bold">2 Active</span>
+</div>
+<div class="p-5 flex flex-col gap-5 max-h-[600px] overflow-y-auto custom-scrollbar">
+<!-- Task Item 1 -->
+<div class="flex flex-col gap-3">
+<div class="flex gap-3">
+<div class="w-20 h-12 bg-slate-200 dark:bg-border-subtle rounded flex-shrink-0 overflow-hidden">
+<img alt="Task video thumbnail" class="w-full h-full object-cover" data-alt="Miniature video frame placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAx9YF8D7yrcUXg_T29iuT17U8tuZWBMmLUToNI0GC6oTvHbzwoVIB6T2ZkEz_X4vsyTD9u0PieGqvNOdp-K966FQGa7wgeGIYZsynkxOPlk2U_qosu5c67oUBa4giasSdxS4RJr4aKkS8cGdRos7QnUDblKTPp2LI3ycoJwnehzl2K3FR9nkNXhTvcDePJt3wL0kviQ4g8NEjwfBWpMMX4LSYzoKKby2n6HQIZ2Wv49BAc7FPJPKHQDmImY6wT9-uDrofjTCPpQ"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Web Frameworks Breakdown</p>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5">Transcribing...</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="w-full bg-slate-200 dark:bg-background-dark h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full transition-all duration-1000" style="width: 65%;"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-medium text-slate-400 italic">Est. 4m remaining</span>
+<span class="text-[10px] font-bold text-primary">65%</span>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px bg-slate-200 dark:bg-border-subtle w-full"></div>
+<!-- Task Item 2 -->
+<div class="flex flex-col gap-3 opacity-80">
+<div class="flex gap-3">
+<div class="w-20 h-12 bg-slate-200 dark:bg-border-subtle rounded flex-shrink-0 overflow-hidden">
+<img alt="Task video thumbnail" class="w-full h-full object-cover" data-alt="Miniature video frame placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD984OAwgTHGINOTEA4duHwafSSDjfyAz08FNs6d6E4hccG6YJTGb0NOzQEctOLpTObW8fCpNygGBvRYp8QhPs7rpswswOaxD436u8wymVUBUmBq72CFZYsTo7CukUGwlPplLHWod8l7QhWKa1-9h3Ojn9OBVgUPC5J6lX7D_6W6qVNbekJQxxDrmhw7tNzZ7-F-a3WMCkyky08EkBziGWSEesPIr-fcJbae8wkMB966hvm8jZBzcOPGfQ_W8YoJoy75N6SCdRrJQ"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Quantum Computing Intro</p>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5">Queued</p>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="w-full bg-slate-200 dark:bg-background-dark h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary/30 h-full w-[12%] animate-pulse"></div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-medium text-slate-400 italic">Waiting in line...</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Pending</span>
+</div>
+</div>
+</div>
+<div class="p-5 bg-slate-100 dark:bg-background-dark/50 border-t border-slate-200 dark:border-border-subtle">
+<button class="w-full py-3 bg-primary text-background-dark font-bold rounded-lg text-sm hover:brightness-110 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+                            PROCESS ALL TASKS
+                        </button>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer Meta -->
+<footer class="mt-auto border-t border-slate-200 dark:border-border-subtle px-6 py-8 bg-slate-50 dark:bg-surface/50">
+<div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-6">
+<span class="text-xs text-slate-500 font-medium">© 2024 YouTube Processor UI</span>
+<div class="flex gap-4">
+<a class="text-xs text-slate-400 hover:text-primary transition-colors" href="#">Terms</a>
+<a class="text-xs text-slate-400 hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="text-xs text-slate-400 hover:text-primary transition-colors" href="#">API Docs</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">System Status:</span>
+<div class="flex items-center gap-1.5">
+<div class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+<span class="text-[10px] font-bold text-green-500 uppercase">Operational</span>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

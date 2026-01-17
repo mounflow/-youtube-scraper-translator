@@ -3,3 +3,14 @@ openai-whisper>=20230314
 deep-translator>=1.11.0
 ffmpeg-python>=0.2.0
 pysrt>=1.1.2
+
+# AI Subtitle Optimizer dependencies
+zhipuai>=2.0.0       # GLM API (Primary)
+anthropic>=0.18.0    # Claude API (Alternative)
+google-generativeai>=0.3.0  # Gemini API (Alternative)
+# Audio/Dubbing
+edge-tts>=6.1.9      # Microsoft Edge TTS
+pydub>=0.25.1        # Audio processing
+ffmpeg-python>=0.2.0
+
+python-dotenv>=1.0.0  # Environment variable management

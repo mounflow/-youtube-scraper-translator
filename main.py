@@ -30,6 +30,7 @@ from translate import Translator, save_bilingual_srt
 from burn import burn_subtitles, check_ffmpeg_installed, get_video_resolution, calculate_font_size, calculate_ass_font_size
 from subtitle_generator import generate_styled_ass
 from translation_optimizer import optimize_srt_translation
+from dubbing import create_dubbed_video
 from style_config import STYLES
 
 logger = setup_logger("main")
@@ -88,9 +89,16 @@ Examples:
     parser.add_argument('--no-burn', action='store_true', help='Skip subtitle burning')
     parser.add_argument('--preview-only', action='store_true', help='Only generate preview, don\'t burn full video')
     parser.add_argument('--yes', '-y', action='store_true', help='Skip confirmation prompts (auto-confirm all)')
-    parser.add_argument('--cleanup', action='store_true', help='Auto cleanup temporary files after processing')
+    parser.add_argument('--cleanup', action='store_true',
+                       help='Clean up intermediary files after processing')
+    parser.add_argument('--skip-translation', action='store_true',
+                       help='Skip subtitle translation step (use provided subtitle as is)')
+    parser.add_argument('--dub', action='store_true',
+                       help='Generate Chinese dubbed audio track')
+    parser.add_argument('--voice', type=str, default='zh-CN-YunxiNeural',
+                       help='Edge-TTS voice for dubbing (default: zh-CN-YunxiNeural)')
     parser.add_argument('--simple-style', action='store_true', help='Use simple SRT style instead of advanced ASS style')
-    parser.add_argument('--style', default='obama', help='Subtitle style name (default: obama)')
+    parser.add_argument('--style', default='premium', help='Subtitle style name (default: premium)')
     parser.add_argument('--no-optimize', action='store_true', help='Disable smart translation optimization (context-aware translation)')
     parser.add_argument('--cookies', metavar='BROWSER', choices=['chrome', 'firefox', 'edge', 'opera', 'brave', 'chromium'],
                        help='Browser to extract cookies from (fixes YouTube bot detection)')
@@ -126,12 +134,12 @@ Examples:
 
     # Download mode
     if args.url:
-        handle_download(args.url, args.quality, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.cookies, args.cookies_file, args.style, args.no_optimize, args.yes, args.cleanup)
+        handle_download(args.url, args.quality, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.cookies, args.cookies_file, args.style, args.no_optimize, args.yes, args.cleanup, args.skip_translation, args.dub, args.voice)
         return
 
     # Process existing files mode
     if args.video:
-        handle_process(args.video, args.subtitle, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.style, args.no_optimize, args.yes, args.cleanup)
+        handle_process(args.video, args.subtitle, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.style, args.no_optimize, args.yes, args.cleanup, args.skip_translation, args.dub, args.voice)
         return
 
     # No arguments specified
@@ -183,7 +191,7 @@ def handle_search(query: str, cookies_from_browser: str = None, cookies_file: st
             print(f"  python main.py --url {video['url']}")
 
 
-def handle_download(url: str, quality: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, cookies_from_browser: str = None, cookies_file: str = None, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False):
+def handle_download(url: str, quality: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, cookies_from_browser: str = None, cookies_file: str = None, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural"):
     """Handle video download and processing."""
     print(f"\n[Step 1/6] Downloading video")
     if cookies_from_browser:
@@ -204,10 +212,10 @@ def handle_download(url: str, quality: str, whisper_model: str, no_burn: bool, p
     print(f"  Subtitle: {result['subtitle'] if result['subtitle'] else 'None (will use Whisper)'}")
 
     # Process the downloaded video
-    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup)
+    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup, skip_translation, dub, voice)
 
 
-def handle_process(video_path: str, subtitle_path: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False):
+def handle_process(video_path: str, subtitle_path: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural"):
     """Handle processing of existing video and subtitle files."""
     video_file = Path(video_path)
     subtitle_file = Path(subtitle_path) if subtitle_path else None
@@ -225,10 +233,10 @@ def handle_process(video_path: str, subtitle_path: str, whisper_model: str, no_b
         'title': video_file.stem,
     }
 
-    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup)
+    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup, skip_translation, dub, voice)
 
 
-def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool = False, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False):
+def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool = False, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural"):
     """Process video through the complete pipeline."""
     video_file = result['video']
     subtitle_file = result['subtitle']
@@ -299,21 +307,25 @@ def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only:
         temp_files.append(temp_srt_path)
 
         # Decide translation strategy
-        if not no_optimize:
-            print("[*] Translation Optimization: ENABLED (Merging sentences + Context aware)")
+        if skip_translation:
+            print("[*] Skipping translation (using provided subtitles as is)")
+            subtitle_source = subtitle_file
+        elif not no_optimize:
+            print("[*] Translation Optimization: ENABLED (完整句子合并 + 上下文感知)")
             # Save raw entries to SRT first
             with open(temp_srt_path, 'w', encoding='utf-8') as f:
                 for entry in entries:
                      f.write(f"{entry.index}\n{format_timestamp(entry.start_time)} --> {format_timestamp(entry.end_time)}\n{entry.text}\n\n")
-            
-            # Run optimizer
-            optimized_srt_path = SUBS_TRANSLATED_DIR / f"{video_title}_optimized.srt"
-            optimize_success = optimize_srt_translation(str(temp_srt_path), str(optimized_srt_path))
-            
+
+            # Run new sentence-based optimizer
+            from sentence_subtitle_optimizer import optimize_srt
+            optimized_srt_path = SUBS_TRANSLATED_DIR / f"{video_title}_sentence_optimized.srt"
+            optimize_success = optimize_srt(str(temp_srt_path), str(optimized_srt_path))
+
             if optimize_success:
                 subtitle_source = optimized_srt_path
             else:
-                logger.error("Optimization failed, falling back to standard translation")
+                logger.error("优化失败，回退到标准翻译")
                 no_optimize = True # Fallback
         
         if no_optimize:
@@ -426,11 +438,44 @@ def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only:
                         sys.exit(1)
                 else:
                     print("Cancelled. Bilingual subtitles saved for manual use.")
+                    output_file = None # No output file generated
         else:
             logger.error("Preview generation failed")
+            output_file = None
     else:
         print(f"\n[Step 5/6] Skipping subtitle burning (--no-burn specified)")
         print("-" * 80)
+        output_file = video_file # Use original file for dubbing if burning skipped
+
+    # Step 7: Dubbing (New)
+    if dub and output_file:
+         print(f"\n[Step 7/7] Generating Chinese Dubbing")
+         print("-" * 80)
+         
+         dubbed_output = output_file.with_name(f"{output_file.stem}_dubbed{output_file.suffix}")
+         print(f"[*] Voice: {voice}")
+         print(f"[*] Generating audio... (this may take a while)")
+         
+         # subtitle_for_burn usually points to the styled ASS or the SRT
+         # dubbing needs the SRT content. 
+         # subtitle_source was set earlier to point to the processed SRT
+         
+         success = create_dubbed_video(str(subtitle_source), str(output_file), str(dubbed_output), voice)
+         
+         if success:
+             print(f"[*] Dubbed video saved to: {dubbed_output}")
+             print("\n" + "=" * 80)
+             print("Processing complete! (Dubbing + Burning)")
+             print("=" * 80)
+         else:
+             logger.error("Dubbing failed")
+    
+    if not dub and not no_burn and output_file:
+        print("\n" + "=" * 80)
+        print("Processing complete!")
+        print("=" * 80)
+    
+    if not dub and no_burn:
         print("\n" + "=" * 80)
         print("Processing complete! (No burning performed)")
         print("=" * 80)

@@ -24,6 +24,26 @@ STYLES = {
         "order": "chi_first", # 中文在前/上
         "english_color": "&H00FFFF&", # 黄色
         "english_fontsize": 45  # 从35改为45
+    },
+    
+    # 风格3: 专业双语字幕 (中文在上大号, 英文在下小号, 白字黑边, 极小行间距) - 默认样式
+    "premium": {
+        "description": "中文在上大号，英文在下小号，白字黑边，专业清晰【默认样式】",
+        # 参数说明:
+        # - Fontsize: 85 (中文主字号，1080p优化)
+        # - PrimaryColour: &H00FFFFFF (纯白色文字)
+        # - OutlineColour: &H00000000 (黑色描边)
+        # - BorderStyle: 1 (精细描边)
+        # - Outline: 3 (描边粗细)
+        # - Shadow: 0 (无阴影，更清晰)
+        # - Alignment: 2 (底部居中)
+        # - MarginV: 40 (底部边距)
+        "ass_style_line": "Style: Default,Microsoft YaHei,85,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,20,20,40,1",
+        "order": "chi_first",  # 中文在上
+        "english_color": None,  # 英文也用白色
+        "english_fontsize": 60,  # 英文字号小于中文
+        "chi_fontsize": 85,  # 中文大字号
+        "line_spacing": 5  # 极小行间距（像素）
     }
 }
 

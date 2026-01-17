@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Video Processing Task List</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00b1cc",
+                        "background-light": "#fafafa",
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .stage-segment {
+            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+        }
+        .stage-segment:first-child {
+            clip-path: polygon(0% 0%, 100% 0%, 95% 100%, 0% 100%);
+        }
+        .stage-segment:last-child {
+            clip-path: polygon(5% 0%, 100% 0%, 100% 100%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#121212] flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-10">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-background-dark">
+<span class="material-symbols-outlined font-bold">movie_filter</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-none tracking-tight">VP-CORE</h1>
+<p class="text-[10px] text-primary font-bold tracking-widest uppercase">System Active</p>
+</div>
+</div>
+<nav class="space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined"> analytics </span>
+<span class="text-sm font-bold">Active Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined"> check_circle </span>
+<span class="text-sm font-bold">Completed</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined"> database </span>
+<span class="text-sm font-bold">Storage</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined"> settings </span>
+<span class="text-sm font-bold">Settings</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 border-t border-slate-200 dark:border-slate-800">
+<div class="bg-slate-100 dark:bg-slate-900 rounded-lg p-4">
+<p class="text-[10px] uppercase font-bold text-slate-500 mb-2">Resource Usage</p>
+<div class="flex justify-between text-xs font-bold mb-1">
+<span>CPU</span>
+<span>42%</span>
+</div>
+<div class="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full">
+<div class="h-full bg-primary rounded-full" style="width: 42%"></div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Top Nav Bar -->
+<header class="h-20 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold tracking-tight">Task Queue</h2>
+<div class="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500">8 TOTAL</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background-dark px-5 py-2.5 rounded-lg font-bold text-sm transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+                    Start All Tasks
+                </button>
+<div class="w-px h-6 bg-slate-200 dark:border-slate-800 mx-2"></div>
+<button class="flex items-center gap-2 border border-red-500/50 hover:bg-red-500/10 text-red-500 px-5 py-2.5 rounded-lg font-bold text-sm transition-all">
+<span class="material-symbols-outlined text-[20px]">power_settings_new</span>
+                    Exit Service
+                </button>
+</div>
+</header>
+<!-- Scrollable Task Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-6">
+<!-- Page Heading section logic -->
+<div class="flex flex-col mb-8">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Pipeline Management</p>
+<h3 class="text-3xl font-bold tracking-tight">Active Processing Jobs</h3>
+</div>
+<!-- Tabs -->
+<div class="flex border-b border-slate-200 dark:border-slate-800 gap-8 mb-8">
+<a class="border-b-2 border-primary text-primary pb-4 px-1 text-sm font-bold" href="#">Processing (3)</a>
+<a class="border-b-2 border-transparent text-slate-500 pb-4 px-1 text-sm font-bold hover:text-slate-700 dark:hover:text-slate-300" href="#">Queued (5)</a>
+<a class="border-b-2 border-transparent text-slate-500 pb-4 px-1 text-sm font-bold hover:text-slate-700 dark:hover:text-slate-300" href="#">Paused (0)</a>
+</div>
+<!-- Task List -->
+<div class="grid gap-4">
+<!-- Task Item 1 (Encoding Stage) -->
+<div class="bg-white dark:bg-[#1e1e1e] border border-slate-200 dark:border-slate-800 p-5 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col md:flex-row gap-6 items-start md:items-center">
+<div class="relative shrink-0">
+<div class="w-40 h-24 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-800 shadow-inner" data-alt="Abstract dark motion background for video thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDft4tgffcFgNtuc8KOA-9s43UhGy9s63xHLB1pc4H_eKiCCVMl3Ie9Dd5eqUdPTEsqJBE3FGV_uq1WmSWVZbFwj1aov2Ym6ynCBMvYgONa-WBiEnfeGvHswOwRNKV-8wG2rN0tL8nTDBTuoWyGJOH5-3K6QXbo8xLyIRTzuTtX_zHYqtMei8FvHpvBRnVo2UmUBaDmJpH1MIjQJ5SdY5ck519AA6noDvTDQMxcwTrfkxKTjJyZX6WkOxRCyb-GN9n8LFczmqJE5Q')">
+</div>
+<div class="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">12:45</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-2">
+<h4 class="text-lg font-bold truncate pr-4">Building a Scalable Microservices Architecture with Go</h4>
+<div class="flex gap-2 shrink-0">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">pause</span>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-red-500 transition-colors">close</span>
+</div>
+</div>
+<!-- Progress Bar Stages -->
+<div class="grid grid-cols-5 gap-1.5 mt-4">
+<!-- Stage 1: Finished -->
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest">Start</span>
+</div>
+<!-- Stage 2: Finished -->
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest">Download</span>
+</div>
+<!-- Stage 3: Finished -->
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest">Subtitles</span>
+</div>
+<!-- Stage 4: Active -->
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary/20 rounded-sm stage-segment overflow-hidden">
+<div class="h-full bg-primary" style="width: 65%"></div>
+</div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest flex items-center gap-1">
+<span class="block w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                                        Encoding
+                                    </span>
+</div>
+<!-- Stage 5: Inactive -->
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-slate-500 tracking-widest">Finished</span>
+</div>
+</div>
+</div>
+<div class="shrink-0 flex flex-col items-end gap-1 px-4">
+<span class="text-3xl font-bold text-primary">78%</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">2m 14s left</span>
+</div>
+</div>
+</div>
+<!-- Task Item 2 (Download Stage) -->
+<div class="bg-white dark:bg-[#1e1e1e] border border-slate-200 dark:border-slate-800 p-5 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col md:flex-row gap-6 items-start md:items-center">
+<div class="relative shrink-0">
+<div class="w-40 h-24 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-800 shadow-inner" data-alt="Abstract geometric grid thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC7vH6KKtTx5JZ4bjiTphjxpECOoEJgGsIOmDuzbe7KieOt0vw3S6oFfCVGJWY1pwOw5b_tEK8cV7tSmsFd6GwCrSakCRqfx6d5LDqOBGHbgRly9qdL8no_NzCHpEezo-W-U-47mfLTCrBOZIfFG2dvPPnJJn-4UBatpHrQGmFbyu_ASZ9pcineLPo9hxmATM6ReknSwvz1tEHhIcWCvCVDEuo5XPE3Xpes-0m362LMm0YMilP4qrGk8bhO6bOgOwqLtcSzYMvWaA')">
+</div>
+<div class="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">08:21</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-2">
+<h4 class="text-lg font-bold truncate pr-4">Advanced UI Design: Mastering Negative Space</h4>
+<div class="flex gap-2 shrink-0">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">pause</span>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-red-500 transition-colors">close</span>
+</div>
+</div>
+<div class="grid grid-cols-5 gap-1.5 mt-4">
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest">Start</span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary/20 rounded-sm stage-segment overflow-hidden">
+<div class="h-full bg-primary" style="width: 32%"></div>
+</div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest flex items-center gap-1">
+<span class="block w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                                        Download
+                                    </span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-slate-500 tracking-widest">Subtitles</span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-slate-500 tracking-widest">Encoding</span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-slate-500 tracking-widest">Finished</span>
+</div>
+</div>
+</div>
+<div class="shrink-0 flex flex-col items-end gap-1 px-4">
+<span class="text-3xl font-bold text-slate-400">12%</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">0.8 MB/s</span>
+</div>
+</div>
+</div>
+<!-- Task Item 3 (Subtitles Stage) -->
+<div class="bg-white dark:bg-[#1e1e1e] border border-slate-200 dark:border-slate-800 p-5 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col md:flex-row gap-6 items-start md:items-center">
+<div class="relative shrink-0">
+<div class="w-40 h-24 rounded-lg bg-cover bg-center border border-slate-200 dark:border-slate-800 shadow-inner" data-alt="Abstract cyan digital waves" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBtLQV-T6m-q-Nywahi4CqT9tO7YcsIjm6uN5SlGb7HX1PHSnxCyMXjw1iyBhoZ9TaktyY3myoVM-Bnhd3dt8ta4ncY-dZi3z8J7B8FM_DPYs6Ev4XmOSmO4_ZjEa6EIwBOtoRs4P-4ykc4mCmG0c-_wjVYfR9Htx6RdXolBPlzsu9KemnOi7UFD-84ItHF9uclQtCxSKfnZTRKv8LXEIOt7HdjVHZv0do3eLtBtWyBvNjGXHT5WsYnfsxjE1wTGPIWh_OPG5akVg')">
+</div>
+<div class="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">25:10</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-2">
+<h4 class="text-lg font-bold truncate pr-4">Documentary: The Future of Quantum Computing</h4>
+<div class="flex gap-2 shrink-0">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">pause</span>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-red-500 transition-colors">close</span>
+</div>
+</div>
+<div class="grid grid-cols-5 gap-1.5 mt-4">
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest">Start</span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest">Download</span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-primary/20 rounded-sm stage-segment overflow-hidden">
+<div class="h-full bg-primary" style="width: 89%"></div>
+</div>
+<span class="text-[9px] font-bold uppercase mt-2 text-primary tracking-widest flex items-center gap-1">
+<span class="block w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                                        Subtitles
+                                    </span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-slate-500 tracking-widest">Encoding</span>
+</div>
+<div class="relative h-10 flex flex-col justify-center items-center">
+<div class="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-sm stage-segment"></div>
+<span class="text-[9px] font-bold uppercase mt-2 text-slate-500 tracking-widest">Finished</span>
+</div>
+</div>
+</div>
+<div class="shrink-0 flex flex-col items-end gap-1 px-4">
+<span class="text-3xl font-bold text-primary">54%</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">AI generating...</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Stats / Footer in Content Area -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<div>
+<p class="text-[10px] font-bold text-slate-500 uppercase">Average Speed</p>
+<p class="text-lg font-bold">12.4 Mbps</p>
+</div>
+<span class="material-symbols-outlined text-primary">speed</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<div>
+<p class="text-[10px] font-bold text-slate-500 uppercase">Storage Available</p>
+<p class="text-lg font-bold">1.2 TB</p>
+</div>
+<span class="material-symbols-outlined text-primary">storage</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<div>
+<p class="text-[10px] font-bold text-slate-500 uppercase">System Uptime</p>
+<p class="text-lg font-bold">14d 2h 5m</p>
+</div>
+<span class="material-symbols-outlined text-primary">terminal</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
