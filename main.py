@@ -327,7 +327,7 @@ def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only:
             else:
                 logger.error("优化失败，回退到标准翻译")
                 no_optimize = True # Fallback
-        
+
         if no_optimize:
             print("[*] Translation Optimization: DISABLED (Line-by-line translation)")
             translator = Translator()
