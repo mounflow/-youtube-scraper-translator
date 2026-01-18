@@ -10,6 +10,9 @@ translate to Chinese, and burn subtitles into videos.
 import argparse
 import sys
 import os
+import atexit
+import glob
+import shutil
 from pathlib import Path
 
 # 设置Windows控制台UTF-8编码
@@ -34,6 +37,30 @@ from dubbing import create_dubbed_video
 from style_config import STYLES
 
 logger = setup_logger("main")
+
+
+def cleanup_on_exit():
+    """程序退出时清理临时文件"""
+    try:
+        # 清理 tmpclaude-*-cwd 目录
+        cleaned_count = 0
+        for tmpdir in glob.glob("tmpclaude-*-cwd"):
+            if Path(tmpdir).exists():
+                try:
+                    shutil.rmtree(tmpdir)
+                    cleaned_count += 1
+                    logger.debug(f"Cleaned up temp directory: {tmpdir}")
+                except Exception as e:
+                    logger.debug(f"Failed to cleanup {tmpdir}: {e}")
+
+        if cleaned_count > 0:
+            logger.debug(f"Cleaned up {cleaned_count} temporary directories on exit")
+    except Exception as e:
+        logger.debug(f"Cleanup error: {e}")
+
+
+# 注册退出处理
+atexit.register(cleanup_on_exit)
 
 
 def get_available_styles():

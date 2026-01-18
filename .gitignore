@@ -39,6 +39,9 @@ env/
 # AI Assistant Working Directories
 .claude/
 
+# Claude Code temporary directories
+tmpclaude-*-cwd/
+
 # Project specific
 downloads/
 logs/
@@ -84,3 +87,5 @@ DRAFT_*.md
 # Documentation drafts
 *.md.bak
 DRAFT_*.md
+
+cookies_projecttwo.txt
