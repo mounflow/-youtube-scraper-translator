@@ -163,13 +163,19 @@ def merge_subtitles_by_sentence(entries: List[SubtitleEntry]) -> List[Tuple[int,
     return merged
 
 
-def split_long_sentence_by_duration(start_ms: int, end_ms: int, text: str) -> List[Tuple[int, int, str]]:
+def split_long_sentence_by_duration(start_ms: int, end_ms: int, text: str,
+                                    video_path: str = None,
+                                    audio_sync: bool = False) -> List[Tuple[int, int, str]]:
     """根据时长智能切分长句子
 
     策略：
     - < 5秒：保持完整
     - 5-10秒：在主要标点处切分（。！？.!?）
     - > 10秒：在次要标点处也切分（，；,:；:）
+
+    参数:
+        video_path: 视频文件路径（用于音频分析）
+        audio_sync: 是否启用音频同步
 
     返回: [(start_ms, end_ms, text_segment), ...]
     """
@@ -209,14 +215,37 @@ def split_long_sentence_by_duration(start_ms: int, end_ms: int, text: str) -> Li
     total_chars = sum(len(p) for p in parts)
     current_time = start_ms
 
+    # 初始化音频分析器（如果启用）
+    audio_analyzer = None
+    if audio_sync and video_path:
+        try:
+            from audio_analyzer import AudioAnalyzer
+            audio_analyzer = AudioAnalyzer(video_path)
+            logger.info("[音频同步] 已启用音频波形分析")
+        except Exception as e:
+            logger.warning(f"[音频同步] 初始化失败: {e}，使用字符比例分配")
+
     for i, part in enumerate(parts):
         if i == len(parts) - 1:
             # 最后一个部分使用剩余时间
             part_end = end_ms
         else:
-            # 按字符比例分配时间
+            # 计算初步时长（按字符比例）
             part_duration = int((end_ms - start_ms) * (len(part) / total_chars))
             part_end = current_time + part_duration
+
+            # 如果启用了音频分析，使用实际语音边界调整
+            if audio_analyzer:
+                try:
+                    adjusted_start, adjusted_end = audio_analyzer.adjust_subtitle_timing(
+                        current_time, part_end
+                    )
+                    # 使用调整后的时长，但确保不会偏离太多
+                    if abs(adjusted_end - adjusted_start - part_duration) < part_duration * 0.5:
+                        part_end = adjusted_end
+                except Exception as e:
+                    logger.debug(f"[音频同步] 调整失败: {e}，使用原时长")
+
             # 确保至少有1秒的显示时间
             if part_end - current_time < 1000:
                 part_end = current_time + 1000
@@ -241,8 +270,14 @@ def correct_terms(text: str) -> str:
 
 def translate_sentences(sentences: List[Tuple[int, int, str]],
                         source_lang: str = 'en',
-                        target_lang: str = 'zh-CN') -> List[Dict]:
+                        target_lang: str = 'zh-CN',
+                        video_path: str = None,
+                        audio_sync: bool = False) -> List[Dict]:
     """翻译句子列表（包含智能切分）
+
+    参数:
+        video_path: 视频文件路径（用于音频分析）
+        audio_sync: 是否启用音频同步
 
     返回: [{'start': ms, 'end': ms, 'english': str, 'chinese': str}, ...]
     """
@@ -256,7 +291,9 @@ def translate_sentences(sentences: List[Tuple[int, int, str]],
             english = correct_terms(english)
 
             # 智能切分长句子
-            split_sentences = split_long_sentence_by_duration(start_ms, end_ms, english)
+            split_sentences = split_long_sentence_by_duration(
+                start_ms, end_ms, english, video_path, audio_sync
+            )
 
             for seg_start, seg_end, seg_english in split_sentences:
                 # 翻译
@@ -348,17 +385,22 @@ def save_bilingual_srt(subtitles: List[Dict], output_path: str):
     logger.info(f"   总计 {len(subtitles)} 条字幕")
 
 
-def optimize_srt(input_srt: str, output_srt: str) -> bool:
+def optimize_srt(input_srt: str, output_srt: str, video_path: str = None, audio_sync: bool = False) -> bool:
     """主函数：优化 SRT 字幕
 
     Args:
         input_srt: 输入的原始 SRT 文件路径
         output_srt: 输出的优化后 SRT 文件路径
+        video_path: 视频文件路径（用于音频分析）
+        audio_sync: 是否启用音频同步
 
     Returns:
         bool: 是否成功
     """
     logger.info(f"🚀 开始优化字幕: {input_srt}")
+
+    if audio_sync and video_path:
+        logger.info("🎵 音频同步模式：已启用")
 
     # 1. 解析原始字幕
     entries = parse_srt_file(input_srt)
@@ -371,8 +413,8 @@ def optimize_srt(input_srt: str, output_srt: str) -> bool:
     # 2. 合并为完整句子
     sentences = merge_subtitles_by_sentence(entries)
 
-    # 3. 翻译
-    translated = translate_sentences(sentences)
+    # 3. 翻译（传入视频路径和音频同步标志）
+    translated = translate_sentences(sentences, video_path=video_path, audio_sync=audio_sync)
 
     # 4. 修复重叠
     fix_overlaps_gentle(translated, min_gap_ms=200)

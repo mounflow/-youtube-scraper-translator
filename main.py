@@ -100,6 +100,7 @@ Examples:
     parser.add_argument('--simple-style', action='store_true', help='Use simple SRT style instead of advanced ASS style')
     parser.add_argument('--style', default='premium', help='Subtitle style name (default: premium)')
     parser.add_argument('--no-optimize', action='store_true', help='Disable smart translation optimization (context-aware translation)')
+    parser.add_argument('--audio-sync', action='store_true', help='Enable audio waveform-based subtitle timing synchronization')
     parser.add_argument('--cookies', metavar='BROWSER', choices=['chrome', 'firefox', 'edge', 'opera', 'brave', 'chromium'],
                        help='Browser to extract cookies from (fixes YouTube bot detection)')
     parser.add_argument('-c', '--cookies-file', metavar='PATH',
@@ -134,12 +135,12 @@ Examples:
 
     # Download mode
     if args.url:
-        handle_download(args.url, args.quality, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.cookies, args.cookies_file, args.style, args.no_optimize, args.yes, args.cleanup, args.skip_translation, args.dub, args.voice)
+        handle_download(args.url, args.quality, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.cookies, args.cookies_file, args.style, args.no_optimize, args.yes, args.cleanup, args.skip_translation, args.dub, args.voice, args.audio_sync)
         return
 
     # Process existing files mode
     if args.video:
-        handle_process(args.video, args.subtitle, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.style, args.no_optimize, args.yes, args.cleanup, args.skip_translation, args.dub, args.voice)
+        handle_process(args.video, args.subtitle, args.whisper_model, args.no_burn, args.preview_only, args.simple_style, args.style, args.no_optimize, args.yes, args.cleanup, args.skip_translation, args.dub, args.voice, args.audio_sync)
         return
 
     # No arguments specified
@@ -191,7 +192,7 @@ def handle_search(query: str, cookies_from_browser: str = None, cookies_file: st
             print(f"  python main.py --url {video['url']}")
 
 
-def handle_download(url: str, quality: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, cookies_from_browser: str = None, cookies_file: str = None, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural"):
+def handle_download(url: str, quality: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, cookies_from_browser: str = None, cookies_file: str = None, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural", audio_sync: bool = False):
     """Handle video download and processing."""
     print(f"\n[Step 1/6] Downloading video")
     if cookies_from_browser:
@@ -212,10 +213,10 @@ def handle_download(url: str, quality: str, whisper_model: str, no_burn: bool, p
     print(f"  Subtitle: {result['subtitle'] if result['subtitle'] else 'None (will use Whisper)'}")
 
     # Process the downloaded video
-    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup, skip_translation, dub, voice)
+    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup, skip_translation, dub, voice, audio_sync)
 
 
-def handle_process(video_path: str, subtitle_path: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural"):
+def handle_process(video_path: str, subtitle_path: str, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural", audio_sync: bool = False):
     """Handle processing of existing video and subtitle files."""
     video_file = Path(video_path)
     subtitle_file = Path(subtitle_path) if subtitle_path else None
@@ -233,10 +234,10 @@ def handle_process(video_path: str, subtitle_path: str, whisper_model: str, no_b
         'title': video_file.stem,
     }
 
-    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup, skip_translation, dub, voice)
+    process_video(result, whisper_model, no_burn, preview_only, simple_style, style, no_optimize, auto_confirm, cleanup, skip_translation, dub, voice, audio_sync)
 
 
-def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool = False, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural"):
+def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only: bool, simple_style: bool = False, style: str = "obama", no_optimize: bool = False, auto_confirm: bool = False, cleanup: bool = False, skip_translation: bool = False, dub: bool = False, voice: str = "zh-CN-YunxiNeural", audio_sync: bool = False):
     """Process video through the complete pipeline."""
     video_file = result['video']
     subtitle_file = result['subtitle']
@@ -320,7 +321,15 @@ def process_video(result: dict, whisper_model: str, no_burn: bool, preview_only:
             # Run new sentence-based optimizer
             from sentence_subtitle_optimizer import optimize_srt
             optimized_srt_path = SUBS_TRANSLATED_DIR / f"{video_title}_sentence_optimized.srt"
-            optimize_success = optimize_srt(str(temp_srt_path), str(optimized_srt_path))
+
+            # Pass video path and audio sync flag to optimizer
+            video_path_for_optimizer = str(video_file) if hasattr(video_file, 'resolve') else str(video_file)
+            optimize_success = optimize_srt(
+                str(temp_srt_path),
+                str(optimized_srt_path),
+                video_path=video_path_for_optimizer,
+                audio_sync=audio_sync
+            )
 
             if optimize_success:
                 subtitle_source = optimized_srt_path
