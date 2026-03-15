@@ -7,6 +7,7 @@ import asyncio
 import json
 import os
 import re
+import sys
 import uuid
 import traceback
 from datetime import datetime
@@ -14,7 +15,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from enum import Enum
 
-import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
