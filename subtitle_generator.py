@@ -6,9 +6,9 @@
 import sys
 import re
 from style_config import STYLES, ASS_HEADER_TEMPLATE
+from utils import setup_logger
 
-# 设置UTF-8编码
-# (已移除模块级副作用，仅在 main.py 控制)
+logger = setup_logger("subtitle_generator")
 
 def parse_srt_content(content):
     """解析SRT内容字符串为列表对象"""
@@ -108,10 +108,10 @@ def fix_overlaps(entries, min_gap_ms=100):
 
         # 如果这一轮没有发现重叠，提前退出
         if not has_overlap:
-            print(f"[INFO] Overlap fix completed after {iteration + 1} iterations")
+            logger.debug(f"Overlap fix completed after {iteration + 1} iterations")
             break
         else:
-            print(f"[INFO] Iteration {iteration + 1}: Fixed {fixed_count} overlaps")
+            logger.debug(f"Iteration {iteration + 1}: Fixed {fixed_count} overlaps")
 
     return sorted_entries
 
@@ -126,7 +126,7 @@ def generate_styled_ass(input_srt_file, output_ass_file, style_name="obama", cus
         custom_font_size: 自定义字体大小 (可选，基于视频分辨率计算)
     """
     if style_name not in STYLES:
-        print(f"WARNING: 样式 '{style_name}' 未找到，使用默认 'obama' 样式")
+        logger.warning(f"Style '{style_name}' not found, falling back to 'obama'")
         style_name = "obama"
 
     style_config = STYLES[style_name]
@@ -148,7 +148,7 @@ def generate_styled_ass(input_srt_file, output_ass_file, style_name="obama", cus
         if len(parts) >= 3:
             parts[2] = str(custom_font_size)
             ass_style_line = ','.join(parts)
-            print(f"[INFO] Using custom font size: {custom_font_size}px (based on video resolution)")
+            logger.info(f"Using custom font size: {custom_font_size}px (based on video resolution)")
 
     # 4. 同样调整英文子标题字体大小（如果有）
     english_fontsize = style_config.get("english_fontsize")
@@ -189,7 +189,7 @@ def generate_styled_ass(input_srt_file, output_ass_file, style_name="obama", cus
             line = f"Dialogue: 0,{entry['start']},{entry['end']},Default,,0,0,0,,{text}\n"
             f.write(line)
 
-    print(f"[SUCCESS] 生成ASS字幕 ({style_name}): {output_ass_file}")
+    logger.info(f"Generated ASS subtitle ({style_name}): {output_ass_file}")
     return True
 
 if __name__ == "__main__":

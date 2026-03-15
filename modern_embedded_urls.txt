@@ -1,0 +1,186 @@
+# Modern Embedded Systems Programming
+# Extracted on: 2026-01-18 21:43:57
+# Total videos: 60
+#
+# Use this file with: python main.py --batch modern_embedded_urls.txt -y
+#
+
+# Video 1: Complete roadmap for developers coding webdesign roadmap
+https://www.youtube.com/watch?v=q5rrUR_-KKE
+
+# Video 2:  Linus Torvalds on Programming Languages for OS Development
+https://www.youtube.com/watch?v=ndZW7044PI8
+
+# Video 3: Modern Software Engineering
+https://www.youtube.com/watch?v=WCwD_1Qm218
+
+# Video 4: programming language speed compilation c golang rust
+https://www.youtube.com/watch?v=DUm6U201o4w
+
+# Video 5: The BEST Programming Languages by Bjarne Stroustrup - Creato
+https://www.youtube.com/watch?v=eTkeTWAQVUU
+
+# Video 6: Why Learn C for Programming programming coding lowcode
+https://www.youtube.com/watch?v=m-DBk5USAXc
+
+# Video 7: How to Start in Embedded Programming programming lowcode tec
+https://www.youtube.com/watch?v=lUaPIvgBfdE
+
+# Video 8: The Future of Coding
+https://www.youtube.com/watch?v=bZ0gjWHAuuc
+
+# Video 9: I Dont Like Cybersecurity Degrees  programming coding lowcod
+https://www.youtube.com/watch?v=No5IH70Ev9o
+
+# Video 10: What is Embedded Programming programming lowcode tech coding
+https://www.youtube.com/watch?v=w6t1juCTrEU
+
+# Video 11: before you code learn how computers work
+https://www.youtube.com/watch?v=97i2BAUw5Xc
+
+# Video 12: AI vs Cyber Security
+https://www.youtube.com/watch?v=ULKC4NISWE4
+
+# Video 13: Embedded Rust will ALWAYS Be Unsafe EmbeddedRust UnsafeCode 
+https://www.youtube.com/watch?v=cFXX_A_-Lc4
+
+# Video 14: Learn C Programming and OOP with Dr Chuck feat classic book 
+https://www.youtube.com/watch?v=PaPN51Mm5qQ
+
+# Video 15:  Rust Programming The Hardest Learning Curve in Coding techn
+https://www.youtube.com/watch?v=HufJiNdfOMg
+
+# Video 16: How to Get Started Learning Embedded Systems
+https://www.youtube.com/watch?v=aC37UE7edP0
+
+# Video 17: 0 Modern Embedded Systems Programming Getting Started
+https://www.youtube.com/watch?v=hnj-7XwTYRI
+
+# Video 18: Why Hardware Abstraction Layers are AMAZING EmbeddedRust Uns
+https://www.youtube.com/watch?v=8jXNRzYXPBE
+
+# Video 19: This is the coolest AI tool to help you generate diagrams te
+https://www.youtube.com/watch?v=vuywEoKjCgQ
+
+# Video 20: All about Embedded Systems  Must master Skills  Different Ro
+https://www.youtube.com/watch?v=_tBFaWR7gnA
+
+# Video 21: what is kernel in operating system  shorts bydubebox kernel
+https://www.youtube.com/watch?v=8I-8p88uaYw
+
+# Video 22: Embedded Systems
+https://www.youtube.com/watch?v=VrSg_GHHOL8
+
+# Video 23: What Actually is Embedded CC Is it different from CC
+https://www.youtube.com/watch?v=KQBBWvY-s0o
+
+# Video 24: Software vs Embedded vs VLSI Engineer vlsi ECEngineeringEEEE
+https://www.youtube.com/watch?v=08QtBolq4EM
+
+# Video 25: Moving from C to Rust for embedded software development
+https://www.youtube.com/watch?v=YXvebHRn8hs
+
+# Video 26: Embedded Systems and their Future Scope  GeeksforGeeks
+https://www.youtube.com/watch?v=SAwCh7QYcQM
+
+# Video 27: Tools for Embedded Engineering ShawnHymel embedded engineeri
+https://www.youtube.com/watch?v=KgpWKbcN4UM
+
+# Video 28: Embedded Systems Engineering VS Embedded Software Engineerin
+https://www.youtube.com/watch?v=7ahkBz3BSRs
+
+# Video 29: A typical beginner trying to learn Embedded Systems
+https://www.youtube.com/watch?v=m8WzEWCcJhI
+
+# Video 30: Why Embedded Systems is an Amazing Career A Professionals Ta
+https://www.youtube.com/watch?v=O_iiELtTEoo
+
+# Video 31: Zig vs Rust Two Paths to Modern Systems Programming
+https://www.youtube.com/watch?v=GTM-YSXF94M
+
+# Video 32: EEPROM vs Flash Memory in Embedded Systems coding memory eep
+https://www.youtube.com/watch?v=j00hSD2M91U
+
+# Video 33: What Is Embedded Systems Programming  Embedded Systems Progr
+https://www.youtube.com/watch?v=BFQCwfgmEcA
+
+# Video 34: A Modern Embedded Product Platform - Anders Norman
+https://www.youtube.com/watch?v=PtjBblkS-Zk
+
+# Video 35: The Role of FPGAs in Modern Embedded Systems an in-depth Tec
+https://www.youtube.com/watch?v=SBrW56cNFQY
+
+# Video 36: Master Class on Embedded C Programming-DAY 130  - M K Jeevar
+https://www.youtube.com/watch?v=G1c_WMD_5pU
+
+# Video 37: 3 High paying Jobs in Embedded Systems  Bytesinbits placemen
+https://www.youtube.com/watch?v=cjeWP4Ug3Bw
+
+# Video 38: Top 4 Beginner-Friendly Development Boards for Learning Embe
+https://www.youtube.com/watch?v=75Jltqgktug
+
+# Video 39: How To Learn Embedded Systems At Home  5 Concepts Explained
+https://www.youtube.com/watch?v=xaCAIZKu_zQ
+
+# Video 40: How to become an Embedded Software Engineer - 5 STEP ROADMAP
+https://www.youtube.com/watch?v=IOs6QDI-2MY
+
+# Video 41: How to Create a Software Architecture  Embedded System Proje
+https://www.youtube.com/watch?v=HXd7g3RlCIs
+
+# Video 42: My favorite C design books all 7 of them
+https://www.youtube.com/watch?v=CSQbIhQDuX0
+
+# Video 43: The BEST Project Structure for CCMCU  Embedded System Projec
+https://www.youtube.com/watch?v=6oJ2LLxfP3s
+
+# Video 44: Top 8 fastest programing languages in 2024 check discription
+https://www.youtube.com/watch?v=Fm3iH1PPgMw
+
+# Video 45: 8 Skills to get a EMBEDDED DEVELOPER Job  Embedded System fo
+https://www.youtube.com/watch?v=AN7nAU9SNwk
+
+# Video 46: 10 Steps To Self Learn Embedded Systems Episode 1 - Embedded
+https://www.youtube.com/watch?v=XhO-SwIsr44
+
+# Video 47: 010 - Top Trends in Embedded Systems for 2025
+https://www.youtube.com/watch?v=bWPHRKrPORI
+
+# Video 48: Lecture 15 Booting Process
+https://www.youtube.com/watch?v=3brOzLJmeek
+
+# Video 49: The Best Board to Start STM32 Programming  ARM Development f
+https://www.youtube.com/watch?v=YEGKD6JQJyM
+
+# Video 50: Is the ISA-95 model fit for modern scalable solutions
+https://www.youtube.com/watch?v=4VzRPHUDj_Y
+
+# Video 51: 100 Job Support  Embedded Systems
+https://www.youtube.com/watch?v=MgdmsBMR9AM
+
+# Video 52: CNow 2018 Michael Caisse Modern C in Embedded Systems
+https://www.youtube.com/watch?v=c9Xt6Me3mJ4
+
+# Video 53: Modern Software Needs Embedded Modern C Programming - Michae
+https://www.youtube.com/watch?v=885TI3jnB7g
+
+# Video 54: Modern C C Patterns to Make Embedded Programming More Produc
+https://www.youtube.com/watch?v=6pXhQ28FVlU
+
+# Video 55: C in the World of Embedded Systems - Vladimir Vishnevskii - 
+https://www.youtube.com/watch?v=HFgq6EtVbDM
+
+# Video 56: Composition on Tiny Embedded Systems in C - Luke Valenty - C
+https://www.youtube.com/watch?v=MhTg9Jnwmms
+
+# Video 57: Cost of C Abstractions in C Embedded Systems - Marcell Juhas
+https://www.youtube.com/watch?v=7gz98K_hCEM
+
+# Video 58: 2024 LLVM Dev Mtg - Modern Embedded Development with LLVM
+https://www.youtube.com/watch?v=5hHQi-Uj34I
+
+# Video 59: The Ultimate Roadmap for Embedded Systems  How to become an 
+https://www.youtube.com/watch?v=D7L1SmjQ3fo
+
+# Video 60: Is Embedded Systems Still a Good Career in 2026
+https://www.youtube.com/watch?v=vkgGmkR7gIo

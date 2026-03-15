@@ -4,23 +4,30 @@ Provides logging, directory management, and common helper functions.
 """
 
 import os
+import sys
 import logging
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
+from logging import StreamHandler
 
 
-# Project directories
-PROJECT_ROOT = Path(__file__).parent
-DOWNLOADS_DIR = PROJECT_ROOT / "downloads"
-SUBS_RAW_DIR = PROJECT_ROOT / "subs_raw"
-SUBS_TRANSLATED_DIR = PROJECT_ROOT / "subs_translated"
-OUTPUT_DIR = PROJECT_ROOT / "output"
-LOGS_DIR = PROJECT_ROOT / "logs"
+# 自定义无缓冲Handler，确保日志实时刷新到stdout
+class UnbufferedHandler(StreamHandler):
+    def emit(self, record):
+        super().emit(record)
+        self.flush()
 
-# Ensure all directories exist
-for directory in [DOWNLOADS_DIR, SUBS_RAW_DIR, SUBS_TRANSLATED_DIR, OUTPUT_DIR, LOGS_DIR]:
-    directory.mkdir(parents=True, exist_ok=True)
+
+# Project directories — single source of truth is config.py
+from config import (
+    PROJECT_ROOT,
+    DOWNLOADS_DIR,
+    SUBS_RAW_DIR,
+    SUBS_TRANSLATED_DIR,
+    OUTPUT_DIR,
+    LOGS_DIR,
+)
 
 
 def setup_logger(name: str = "youtube_processor") -> logging.Logger:
@@ -55,10 +62,15 @@ def setup_logger(name: str = "youtube_processor") -> logging.Logger:
     file_handler.setFormatter(file_formatter)
 
     # Console handler (Use configured level)
-    console_handler = logging.StreamHandler()
+    # 使用 unbuffered stream 确保日志实时输出
+    import sys
+    # 使用无缓冲handler确保实时输出
+    console_handler = UnbufferedHandler(sys.stdout)
     console_handler.setLevel(level)
     console_formatter = logging.Formatter('%(levelname)s: %(message)s')
     console_handler.setFormatter(console_formatter)
+    # 确保立即刷新
+    console_handler.flush()
 
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)

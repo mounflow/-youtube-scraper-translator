@@ -3,37 +3,17 @@ Subtitle burning module using ffmpeg.
 Burns subtitles into video files with customizable styling.
 """
 
+import os
+import re
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Optional, Dict
 from utils import setup_logger, OUTPUT_DIR, validate_file_size
+from config import FFMPEG_PATH, FFMPEG_DIR
 
 logger = setup_logger("burn")
 
-# Find FFmpeg executable path
-FFMPEG_PATH = None
-_common_paths = [
-    r"D:\SofewareHome\aboutT\ffmpeg\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe",
-    r"D:\Tools\AboutUniversal\installffmpeg\ffmpeg-8.0.1-essentials_build\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe",
-    r"C:\ffmpeg\bin\ffmpeg.exe",
-    r"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
-]
-
-for path in _common_paths:
-    if Path(path).exists():
-        FFMPEG_PATH = path
-        logger.info(f"Using FFmpeg at: {path}")
-        break
-
-if FFMPEG_PATH is None:
-    # Try to use ffmpeg from PATH
-    try:
-        result = subprocess.run(['where', 'ffmpeg'], capture_output=True, text=True, timeout=5, shell=True)
-        if result.returncode == 0 and result.stdout.strip():
-            FFMPEG_PATH = 'ffmpeg'  # Use from PATH
-            logger.info("Using FFmpeg from system PATH")
-    except:
-        FFMPEG_PATH = 'ffmpeg'  # Default fallback
 
 
 def burn_subtitles(
@@ -43,7 +23,8 @@ def burn_subtitles(
     style: Optional[Dict] = None,
     preview_only: bool = False,
     force_style: bool = False,
-    progress_callback = None
+    progress_callback = None,
+    progress_mgr=None
 ) -> Optional[Path]:
     """
     Burn subtitles into video using ffmpeg.
@@ -56,6 +37,7 @@ def burn_subtitles(
         preview_only: If True, only generate preview image
         force_style: If True, apply force_style (NOT recommended for ASS files)
         progress_callback: Optional callback function(float, str) for progress updates
+        progress_mgr: ProgressManager instance for Rich progress bars
 
     Returns:
         Path to output file or None if failed
@@ -113,14 +95,10 @@ def burn_subtitles(
     try:
         import ffmpeg
 
-        from config import FFMPEG_PATH
-        
-        # Update ffmpeg binary path - ensure it's in PATH for ffmpeg-python
-        if FFMPEG_PATH != 'ffmpeg':
-            ffmpeg_dir = str(Path(FFMPEG_PATH).parent)
-            if ffmpeg_dir not in os.environ['PATH']:
-                os.environ['PATH'] = ffmpeg_dir + os.pathsep + os.environ['PATH']
-                logger.debug(f"Added FFmpeg to PATH: {ffmpeg_dir}")
+        # Ensure FFmpeg directory is in PATH so ffmpeg-python can find the binary
+        if FFMPEG_DIR and FFMPEG_DIR not in os.environ.get('PATH', ''):
+            os.environ['PATH'] = FFMPEG_DIR + os.pathsep + os.environ.get('PATH', '')
+            logger.debug(f"Added FFmpeg to PATH: {FFMPEG_DIR}")
 
         logger.info(f"Burning subtitles into video: {video_path.name}")
 
@@ -192,21 +170,41 @@ def burn_subtitles(
                     vf_filter = f"subtitles={subtitle_abs}"
                     logger.info(f"Using ASS internal styling (no force_style)")
 
-                # Build ffmpeg command
-                import subprocess
-                cmd = [
-                    'ffmpeg',
-                    '-i', video_filename,
-                    '-vf', vf_filter,
-                    '-c:v', 'libx264',
-                    '-c:a', 'copy',
-                    '-preset', 'veryfast',
-                    '-crf', '23',
-                    '-vsync', 'cfr',
-                    '-async', '1',
-                    '-y',
-                    str(output_path)
-                ]
+                # Check for hardware acceleration
+                use_nvenc = check_nvenc_support()
+                if use_nvenc:
+                    logger.info("⚡ NVIDIA NVENC Hardware Acceleration Enabled")
+                    cmd = [
+                        FFMPEG_PATH,
+                        '-hwaccel', 'auto',
+                        '-i', video_filename,
+                        '-vf', vf_filter,
+                        '-c:v', 'h264_nvenc',
+                        '-preset', 'p4',       # Balance between speed and quality for NVENC
+                        '-rc', 'vbr',
+                        '-cq', '28',           # Constant quality
+                        '-c:a', 'copy',
+                        '-vsync', 'cfr',
+                        '-async', '1',
+                        '-y',
+                        str(output_path)
+                    ]
+                else:
+                    logger.info("💻 Using CPU Encoding (Multithreaded Ultrafast)")
+                    cmd = [
+                        FFMPEG_PATH,
+                        '-i', video_filename,
+                        '-vf', vf_filter,
+                        '-c:v', 'libx264',
+                        '-c:a', 'copy',
+                        '-preset', 'ultrafast', # Maximum CPU speed
+                        '-threads', '0',        # Maximize multithreading
+                        '-crf', '23',
+                        '-vsync', 'cfr',
+                        '-async', '1',
+                        '-y',
+                        str(output_path)
+                    ]
                 
                 # Run with progress monitoring
                 process = subprocess.Popen(
@@ -220,6 +218,12 @@ def burn_subtitles(
                 # Monitor progress from stderr
                 import re
                 last_print_pct = 0
+
+                # 创建 Rich 进度条任务
+                task_id = None
+                if progress_mgr and total_frames > 0:
+                    task_id = progress_mgr.burn_task(total_frames)
+
                 for line in process.stderr:
                     # Parse frame number from FFmpeg output
                     match = re.search(r'frame=\s*(\d+)', line)
@@ -228,6 +232,15 @@ def burn_subtitles(
                         if total_frames > 0:
                             progress = min(current_frame / total_frames, 0.99)
                             pct = int(progress * 100)
+
+                            # 更新 Rich 进度条
+                            if progress_mgr and task_id:
+                                progress_mgr.progress.update(
+                                    task_id,
+                                    completed=current_frame,
+                                    description=f"烧录字幕 {current_frame}/{total_frames} 帧 ({pct}%)"
+                                )
+
                             # Print every 5% for API to parse
                             if pct >= last_print_pct + 5:
                                 print(f"[Burning] frame={current_frame} progress={pct}%", flush=True)
@@ -378,6 +391,31 @@ def _burn_with_subprocess(
             temp_subtitle.unlink()
 
 
+def check_nvenc_support() -> bool:
+    """Check if NVIDIA NVENC hardware encoder is supported."""
+    if not FFMPEG_PATH:
+        return False
+    try:
+        # Check if h264_nvenc encoder exists in ffmpeg
+        result = subprocess.run(
+            [FFMPEG_PATH, '-encoders'],
+            capture_output=True, text=True, timeout=5
+        )
+        if 'h264_nvenc' in result.stdout:
+            # Let's do a fast test to see if hardware is actually available
+            test_cmd = [
+                FFMPEG_PATH, '-f', 'lavfi', '-i', 'color=size=64x64:duration=0.1', 
+                '-c:v', 'h264_nvenc', '-f', 'null', '-'
+            ]
+            test_result = subprocess.run(test_cmd, capture_output=True, timeout=5)
+            # 0 means encode succeeded, hardware available
+            if test_result.returncode == 0:
+                return True
+        return False
+    except Exception:
+        return False
+
+
 def check_ffmpeg_installed() -> bool:
     """
     Check if ffmpeg is installed and accessible.
@@ -385,8 +423,17 @@ def check_ffmpeg_installed() -> bool:
     Returns:
         True if ffmpeg is available, False otherwise
     """
-    # FFMPEG_PATH is already set at module level
-    return FFMPEG_PATH is not None or Path(FFMPEG_PATH if FFMPEG_PATH != 'ffmpeg' else 'NUL').exists()
+    if FFMPEG_PATH and FFMPEG_PATH != 'ffmpeg':
+        return Path(FFMPEG_PATH).exists()
+    # Fallback: try running ffmpeg
+    try:
+        result = subprocess.run(
+            [FFMPEG_PATH, '-version'],
+            capture_output=True, timeout=5
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
 
 
 def get_video_resolution(video_path: Path) -> Optional[tuple]:
@@ -478,56 +525,26 @@ def calculate_font_size(resolution: tuple) -> int:
         return 32
 
 
-def calculate_ass_font_size(resolution: tuple, base_size: int = 75) -> int:
-    """
-    Calculate appropriate ASS font size based on video resolution.
-
-    ASS uses PlayRes (1920x1080) coordinate system, so font size needs to be
-    scaled inversely with actual video height to maintain visual consistency.
-
-    Args:
-        resolution: Tuple of (width, height)
-        base_size: Base font size for 1080p (default: 75)
-
-    Returns:
-        Recommended font size for ASS subtitles
-
-    Examples:
-        480p  → 150px (2x base)
-        720p  → 100px (1.33x base)
-        1080p → 75px  (1x base)
-    """
-    height = resolution[1]
-
-    # Calculate scaling factor: base_size * (1080 / actual_height)
-    # This ensures font appears the same visual size regardless of resolution
-    scale_factor = 1080 / height
-    font_size = int(base_size * scale_factor)
-
-    # Clamp to reasonable range
-    font_size = max(50, min(font_size, 200))
-
-    return font_size
-
 
 
 def calculate_ass_font_size(resolution: tuple) -> int:
     """
     Calculate ASS font size based on video resolution.
-    Returns larger values suitable for ASS rendering.
+    Returns values suitable for ASS rendering (2/3 of original size).
     """
     height = resolution[1]
-    
+
     # Scale font size based on video height (ASS native pixels)
+    # Reduced to 2/3 of original size for better readability
     if height <= 480:
-        return 40
+        return 27   # 40 * 2/3
     elif height <= 720:
-        return 60
+        return 40   # 60 * 2/3
     elif height <= 1080:
-        return 85  # Aggressive size for 1080p
+        return 57   # 85 * 2/3 ≈ 56.67
     else:
         # 4K and beyond
-        return 120
+        return 80   # 120 * 2/3
 
 
 if __name__ == "__main__":

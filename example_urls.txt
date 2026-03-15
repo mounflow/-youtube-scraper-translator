@@ -1,0 +1,8 @@
+# Example URL list for batch processing
+# Lines starting with # are comments and will be ignored
+# Empty lines are also ignored
+
+# Add your YouTube URLs below (one per line):
+# https://www.youtube.com/watch?v=VIDEO_ID1
+# https://www.youtube.com/watch?v=VIDEO_ID2
+# https://www.youtube.com/watch?v=VIDEO_ID3

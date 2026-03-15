@@ -46,6 +46,7 @@ def search_videos(
         'force_generic_extractor': False,
         'noplaylist': True,
         'format': 'best',
+        'socket_timeout': 15,
     }
 
     # Add cookies if specified

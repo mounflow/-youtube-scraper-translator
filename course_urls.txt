@@ -1,0 +1,186 @@
+# Quantum Leapa LLC
+# Extracted on: 2026-01-18 21:42:28
+# Total videos: 60
+#
+# Use this file with: python main.py --batch course_urls.txt -y
+#
+
+# Video 1: 0 Modern Embedded Systems Programming Getting Started
+https://www.youtube.com/watch?v=hnj-7XwTYRI
+
+# Video 2: Getting Started with QP Frameworks
+https://www.youtube.com/watch?v=O7ER6_VqIH0
+
+# Video 3: The Easiest Quantum Jumping Hack Ever shorts
+https://www.youtube.com/watch?v=xGdR-UkrP3s
+
+# Video 4:  Major Tech Breakthrough Googles Quantum Leap 
+https://www.youtube.com/watch?v=rrpdGq12h7s
+
+# Video 5: Quantum Leap  New Qubit Tech  Algorithm Breakthroughs
+https://www.youtube.com/watch?v=73cEP4jfUAw
+
+# Video 6: 𝗦𝗘𝗔𝗟𝗦𝗤𝘀 𝗤𝘂𝗮𝗻𝘁𝘂𝗺 𝗟𝗲𝗮𝗽 𝗶𝗻 𝗨𝗔𝗘 𝗣𝗼𝘀𝘁-𝗤𝘂𝗮𝗻𝘁𝘂𝗺 𝗦𝗲𝗺𝗶𝗰𝗼𝗻𝗱𝘂𝗰𝘁𝗼𝗿 𝗖𝗲𝗻𝘁𝗲
+https://www.youtube.com/watch?v=Gt2UXNalCGY
+
+# Video 7: Couple Fails Electric Skateboard
+https://www.youtube.com/watch?v=WFKW8T89mN8
+
+# Video 8: Quantum Leap the Complete Series DVD
+https://www.youtube.com/watch?v=tJzy2QSPt2U
+
+# Video 9: Why AMD and IBM Shares Just Took Quantum Leaps To Record Hig
+https://www.youtube.com/watch?v=4Vis1ea40oU
+
+# Video 10: Dan Pena QLA Quantum Leap Advantage Concept basic concept of
+https://www.youtube.com/watch?v=Rla4tO1vEoQ
+
+# Video 11: Relationship Growth  Shared Values
+https://www.youtube.com/watch?v=ztdRGwjPLFo
+
+# Video 12: Massage Move Thumb Bump
+https://www.youtube.com/watch?v=7u4Kj9pPfQU
+
+# Video 13: Quantum Leaps How Computing is Changing the Future sciencefa
+https://www.youtube.com/watch?v=2vaCNGFqYfs
+
+# Video 14: One Step to Quantum Leap quantumleap mindset manifest
+https://www.youtube.com/watch?v=K-Utek7fADc
+
+# Video 15: From Abacus to Quantum The Hidden Thread of Computing Evolut
+https://www.youtube.com/watch?v=e1Z96x2RHZE
+
+# Video 16: Quantum Leap
+https://www.youtube.com/watch?v=GSWkhXBJ_c4
+
+# Video 17: The Silent Killer Of Erections
+https://www.youtube.com/watch?v=I7m2rJTV1QY
+
+# Video 18: Future of Medicine  Dynamic Clustering  Quantum Leaps in Gen
+https://www.youtube.com/watch?v=kLk2XVESY8c
+
+# Video 19: Quantum Leap has started Join Now    shorts
+https://www.youtube.com/watch?v=pLG-WoYCniA
+
+# Video 20: Quantum Leap  Energy Mysteries Revealed 
+https://www.youtube.com/watch?v=dDxdN8xXeBQ
+
+# Video 21: Quantum Leaps Introductionwmv
+https://www.youtube.com/watch?v=yuMVZ1wQca4
+
+# Video 22: NextGen Update Multimodal AI Quantum Leaps Edge Computing an
+https://www.youtube.com/watch?v=sBkCo5nxBUY
+
+# Video 23: Quantum Leap Inventions Propelling Us to the Future
+https://www.youtube.com/watch?v=PPuW4QSpqak
+
+# Video 24: The Quantum Leap  How Qubits Are Rewriting Reality 
+https://www.youtube.com/watch?v=iJUUhe3GAbY
+
+# Video 25: Techs Next Wave AI Jobs Quantum Leaps and the EV Race
+https://www.youtube.com/watch?v=gh3hx4sg7cg
+
+# Video 26: DARPA and Quantum Leaps in Benchmarketing
+https://www.youtube.com/watch?v=7E4GaRrRWmc
+
+# Video 27: Quantum Leap Energy Optimization with Quantum Computing
+https://www.youtube.com/watch?v=91BU0pcn42M
+
+# Video 28: Quantum Logistics Optimal Solutions
+https://www.youtube.com/watch?v=L1xfydjIGu4
+
+# Video 29: Caelum Diagnostic Solutions- Making Quantum Leaps
+https://www.youtube.com/watch?v=dkxHmA30GbA
+
+# Video 30: Three tea blends to support a quantum leap 
+https://www.youtube.com/watch?v=k4gA-Dr_Vs4
+
+# Video 31: Quantum Leaps
+https://www.youtube.com/watch?v=Ud2cHMzg14Y
+
+# Video 32: We Re-Did Our Quantum Leap Study Course shorts
+https://www.youtube.com/watch?v=_I4TPK6x0lM
+
+# Video 33: Quantum Leap Energy Grid Optimization with the Unified Equat
+https://www.youtube.com/watch?v=dWfu3O1Ldwo
+
+# Video 34: Quantum Leaps
+https://www.youtube.com/watch?v=wQaiGG_iMCA
+
+# Video 35: Quantum Leaps
+https://www.youtube.com/watch?v=NQ1hi01uRog
+
+# Video 36: From Quick Wins to Quantum Leaps AI in Everyday Productivity
+https://www.youtube.com/watch?v=AVEQ4zJBOJ0
+
+# Video 37: Quantum Leaps
+https://www.youtube.com/watch?v=7YwJqFah_kY
+
+# Video 38: Quantum Leap Software for My Apple Tree LLC
+https://www.youtube.com/watch?v=gvrGukxUN2Q
+
+# Video 39: Quantum Logistics Leap A Shipping Startup Breaks the Mold
+https://www.youtube.com/watch?v=Mzhugh2V4JY
+
+# Video 40: QUANTUM LEAP MICROSOFTS CHIP REDEFINES SUPERCOMPUTERS AND MA
+https://www.youtube.com/watch?v=MTdR0ji1AhU
+
+# Video 41: Quantum Leaps
+https://www.youtube.com/watch?v=cRkj5ASQUis
+
+# Video 42: Quantum Leaps The Mind-Blowing Tech That Will Change EVERYTH
+https://www.youtube.com/watch?v=rXj3SmmpTXQ
+
+# Video 43: S M A R T Technology Quantum Leap Framework
+https://www.youtube.com/watch?v=nbcVLy-bYpY
+
+# Video 44: Quantum Leaps  Tech Breakthroughs D-Wave IBM Quartz Memory
+https://www.youtube.com/watch?v=s-S-LmOg8xU
+
+# Video 45: S M A R T Technology Quantum Leap Framework
+https://www.youtube.com/watch?v=Tm3esUC3R3Q
+
+# Video 46: Quantum Leaps Fermion Speedup Data Centers Databases  Circui
+https://www.youtube.com/watch?v=PhnFXcg6i5M
+
+# Video 47: Quantum Leap Break the Chains
+https://www.youtube.com/watch?v=5Z36WvGSu_s
+
+# Video 48: 1K in Regencell D-Wave Quantum Rigetti  Huge gains Stocks Qu
+https://www.youtube.com/watch?v=41NZSZFqROU
+
+# Video 49: S M A R T Technology Quantum Leap Framework - Step 1 or Stra
+https://www.youtube.com/watch?v=i1OoKwS1J6w
+
+# Video 50: From Quick Wins to Quantum Leaps The 3 AI Startup Trends Red
+https://www.youtube.com/watch?v=zmO1rV5mQbY
+
+# Video 51: Quantum Leap Geospatial Intelligence Solutions LLC -December
+https://www.youtube.com/watch?v=g9Jcsz_RqOk
+
+# Video 52: S M A R T Technology Quantum Leap Framework   Step 5
+https://www.youtube.com/watch?v=uwCK2bJsmg4
+
+# Video 53: Quantum Leap Activation  8Hz Seamless Loop  4-Hour Subaudibl
+https://www.youtube.com/watch?v=QWns4SDpcD8
+
+# Video 54: Quantum Leaps Top 15 Breakthroughs  quantum science
+https://www.youtube.com/watch?v=pVOddsk6zs8
+
+# Video 55: The Quantum 90-Day Leap I Podcast Episode 65
+https://www.youtube.com/watch?v=OqrQIhkrBOM
+
+# Video 56: 143 Quantum Leaps in AI  Trade
+https://www.youtube.com/watch?v=eiqfGt72CrI
+
+# Video 57: 143 Quantum Leaps in AI  Trade
+https://www.youtube.com/watch?v=tueiq2hQ05M
+
+# Video 58: EP 277  AI Revolution Robotics Quantum Leaps
+https://www.youtube.com/watch?v=06ugtwDR6zk
+
+# Video 59:  Quantum Leaps  AGI Delays The Real AI Revolution of 2025 
+https://www.youtube.com/watch?v=2_xPT8weXmA
+
+# Video 60: Quantum Leaps IonQ D-Wave Peking Uni  2025 Tech Trends
+https://www.youtube.com/watch?v=5rmmDih5OCc

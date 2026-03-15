@@ -28,33 +28,17 @@ from pydub import AudioSegment
 # Project imports
 from utils import setup_logger, format_timestamp
 from subtitle import parse_srt, SubtitleEntry
+from config import FFMPEG_PATH
 
 logger = setup_logger("dubbing")
 
-# Configure pydub to use our FFMPEG
-# Try to find FFMPEG path similar to burn.py logic
-FFMPEG_PATH = None
-_common_paths = [
-    r"D:\SofewareHome\aboutT\ffmpeg\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe",
-    r"D:\Tools\AboutUniversal\installffmpeg\ffmpeg-8.0.1-essentials_build\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe",
-    r"C:\ffmpeg\bin\ffmpeg.exe",
-]
+# Configure pydub to use our FFmpeg
+if FFMPEG_PATH and FFMPEG_PATH != 'ffmpeg':
+    AudioSegment.converter = FFMPEG_PATH
+    logger.info(f"Pydub using FFmpeg at: {FFMPEG_PATH}")
+else:
+    logger.info("Pydub will use FFmpeg from system PATH")
 
-for path in _common_paths:
-    if Path(path).exists():
-        FFMPEG_PATH = path
-        # Configure pydub
-        AudioSegment.converter = path
-        logger.info(f"Pydub using FFmpeg at: {path}")
-        break
-
-if not FFMPEG_PATH:
-    # Hope it is in PATH
-    if shutil.which("ffmpeg"):
-        FFMPEG_PATH = "ffmpeg"
-        logger.info("Pydub using FFmpeg from system PATH")
-    else:
-        logger.warning("FFmpeg not found! Dubbing might fail.")
 
 class DubbingEngine:
     def __init__(self, voice: str = "zh-CN-YunxiNeural", speed_factor: float = 1.0):

@@ -283,14 +283,17 @@ def transcribe_with_whisper(audio_path: Path, model: str = "medium") -> List[Sub
     Returns:
         List of SubtitleEntry objects
     """
+    import traceback
     try:
         import whisper
 
-        logger.info(f"Loading Whisper model: {model}")
+        logger.info(f"Loading Whisper model: {model} (this may take a while)...")
         model_instance = whisper.load_model(model)
+        logger.info(f"Whisper model loaded successfully")
 
-        logger.info(f"Transcribing audio: {audio_path.name}")
+        logger.info(f"Starting transcription: {audio_path.name}")
         result = model_instance.transcribe(str(audio_path), task="transcribe")
+        logger.info(f"Transcription completed: {len(result.get('segments', []))} segments")
 
         # Convert to subtitle entries
         entries = []
@@ -304,11 +307,12 @@ def transcribe_with_whisper(audio_path: Path, model: str = "medium") -> List[Sub
                     text=text
                 ))
 
-        logger.info(f"Whisper transcription complete: {len(entries)} segments")
+        logger.info(f"Whisper transcription complete: {len(entries)} subtitle entries")
 
         # Save SRT file
         output_path = SUBS_RAW_DIR / f"{audio_path.stem}.srt"
         save_srt(entries, output_path)
+        logger.info(f"Saved subtitle to: {output_path}")
 
         return entries
 
@@ -318,7 +322,11 @@ def transcribe_with_whisper(audio_path: Path, model: str = "medium") -> List[Sub
     except Exception as e:
         logger.error(f"Error transcribing with Whisper: {e}")
         logger.error(f"  Audio file: {audio_path}")
-        logger.error(f"  Hint: Ensure audio file is valid and model '{model}' is downloaded")
+        logger.error(f"  Model: {model}")
+        # 记录详细堆栈信息
+        tb = traceback.format_exc()
+        logger.error(f"  Stack trace: {tb[:500]}...")
+        logger.error(f"Hint: Ensure audio file is valid and model '{model}' is downloaded")
         return []
 
 

@@ -37,9 +37,12 @@ class AudioAnalyzer:
         self.audio_features: Optional[Dict] = None
         self.video_duration_ms: int = 0
 
-    def load_or_extract_audio_features(self) -> bool:
+    def load_or_extract_audio_features(self, progress_mgr=None) -> bool:
         """
         加载或批量提取音频特征
+
+        参数:
+            progress_mgr: ProgressManager 实例（可选）
 
         返回:
             bool: 是否成功
@@ -51,7 +54,17 @@ class AudioAnalyzer:
 
         # 批量提取音频特征
         logger.info("批量提取音频特征（这可能需要30-60秒）...")
+
+        # 创建 Rich 进度条任务
+        task_id = None
+        if progress_mgr:
+            task_id = progress_mgr.audio_analysis_task()
+
         self.audio_features = self._extract_full_audio_features()
+
+        if progress_mgr and task_id:
+            # 更新进度条为完成状态
+            progress_mgr.progress.update(task_id, completed=100)
 
         if self.audio_features:
             # 保存到缓存
@@ -246,6 +259,47 @@ class AudioAnalyzer:
         # 从缓存中获取范围内的帧
         return self._get_frames_in_range(start_ms, end_ms)
 
+    def find_silence_points(self, start_ms: int, end_ms: int, progress_mgr=None) -> List[int]:
+        """
+        寻找指定时间段内的静音点（能量谷底），用于完美的短句切分
+        
+        参数:
+            start_ms: 寻址开始时间
+            end_ms: 寻址结束时间
+            
+        返回:
+            List[int]: 推荐的静音打断点时间段(ms)
+        """
+        rms_values = self.extract_audio_features(start_ms, end_ms)
+        if not rms_values:
+            return []
+            
+        # 寻找局部极小值（能量低于平均值的谷底）
+        avg_rms = sum(rms_values) / len(rms_values)
+        silence_threshold = avg_rms - 5 # 比平均能量低5dB视为静音/停顿
+        
+        silence_points = []
+        duration_ms = end_ms - start_ms
+        total_frames = len(rms_values)
+        
+        in_silence = False
+        silence_start_idx = 0
+        
+        for i, rms in enumerate(rms_values):
+            if rms < silence_threshold:
+                if not in_silence:
+                    in_silence = True
+                    silence_start_idx = i
+            else:
+                if in_silence:
+                    in_silence = False
+                    # 记录这个静音段的中心点
+                    center_idx = (silence_start_idx + i) // 2
+                    time_offset = int((center_idx / total_frames) * duration_ms)
+                    silence_points.append(start_ms + time_offset)
+                    
+        return silence_points
+
     def _parse_rms_output(self, ffmpeg_output: str) -> List[float]:
         """
         解析 FFmpeg 输出，提取 RMS 能级值（保留用于兼容性）
@@ -373,7 +427,8 @@ class AudioAnalyzer:
         subtitle_end: int,
         max_delay_start: int = 500,
         max_advance_end: int = 300,
-        min_duration: int = 1000
+        min_duration: int = 1000,
+        progress_mgr=None
     ) -> Tuple[int, int]:
         """
         根据语音活动调整字幕时间戳
@@ -389,10 +444,15 @@ class AudioAnalyzer:
             max_delay_start: 最大延迟开始时间（默认500ms）
             max_advance_end: 最大提前结束时间（默认300ms）
             min_duration: 最小显示时长（默认1000ms）
+            progress_mgr: ProgressManager 实例（可选）
 
         返回:
             (new_start, new_end) 调整后的时间戳
         """
+        # 确保音频特征已加载
+        if not self.audio_features:
+            self.load_or_extract_audio_features(progress_mgr=progress_mgr)
+
         # 检测语音边界
         speech_start, speech_end = self.detect_speech_boundaries(
             subtitle_start, subtitle_end

@@ -29,12 +29,13 @@ class ProgressManager:
     def create_progress(self):
         """创建进度条实例"""
         self.progress = Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
+            SpinnerColumn(spinner_name="dots"),
+            TextColumn("{task.description}"),
+            BarColumn(bar_width=None),
             TaskProgressColumn(),
             TimeRemainingColumn(),
-            console=self.console
+            console=self.console,
+            expand=True
         )
         return self.progress
 
@@ -47,7 +48,7 @@ class ProgressManager:
             total: 总进度（默认100）
         """
         return self.progress.add_task(
-            "[cyan]下载中...", total=total, task_id=task_id
+            f"下载中... {task_id}", total=total
         )
 
     def translation_task(self, total):
@@ -58,7 +59,7 @@ class ProgressManager:
             total: 字幕条目总数
         """
         return self.progress.add_task(
-            "[yellow]翻译字幕...", total=total
+            f"翻译字幕... ({total}条)", total=total
         )
 
     def burn_task(self, total_frames):
@@ -69,13 +70,13 @@ class ProgressManager:
             total_frames: 总帧数
         """
         return self.progress.add_task(
-            "[green]烧录字幕...", total=total_frames
+            f"烧录字幕...", total=total_frames
         )
 
     def audio_analysis_task(self):
         """音频分析任务（不确定时长，只显示spinner）"""
         return self.progress.add_task(
-            "[blue]分析音频波形...", total=None
+            "分析音频波形...", total=None
         )
 
     def search_task(self, total=None):
@@ -86,7 +87,7 @@ class ProgressManager:
             total: 预期结果数量（可选）
         """
         return self.progress.add_task(
-            "[magenta]搜索视频...", total=total
+            "搜索视频...", total=total
         )
 
     def subtitle_optimization_task(self, total):
@@ -97,5 +98,33 @@ class ProgressManager:
             total: 字幕条目总数
         """
         return self.progress.add_task(
-            "[cyan]优化字幕...", total=total
+            f"优化字幕... ({total}条)", total=total
+        )
+
+    def batch_task(self, total_videos: int) -> int:
+        """
+        批处理任务进度条
+
+        参数:
+            total_videos: 总视频数量
+
+        返回:
+            任务ID
+        """
+        return self.progress.add_task(
+            f"批处理视频... ({total_videos}个)", total=total_videos
+        )
+
+    def concurrent_download_task(self, video_id: str) -> int:
+        """
+        单个并发下载任务
+
+        参数:
+            video_id: 视频标识字符串
+
+        返回:
+            任务ID
+        """
+        return self.progress.add_task(
+            f"下载视频 {video_id}", total=None
         )

@@ -8,8 +8,8 @@ STYLES = {
     # 风格1: 奥巴马演讲图风格 (英文在上, 中文在下, 无框, 纯白强描边)
     "obama": {
         "description": "Eng Top, Chi Bottom, No Box, Thick Outline, All White",
-        # 字体从45号改为75号
-        "ass_style_line": "Style: Default,Microsoft YaHei,75,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,4,2,2,20,20,35,1",
+        # 字体大小：原75号改为50号 (2/3)
+        "ass_style_line": "Style: Default,Microsoft YaHei,50,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,-1,0,0,0,100,100,0,0,1,4,2,2,20,20,35,1",
         "order": "eng_first", # 英文在前/上
         "english_color": None, # 使用Style默认颜色(白)
         "english_fontsize": None # 使用Style默认大小
@@ -19,18 +19,18 @@ STYLES = {
     "box_classic": {
         "description": "Chi Top, Eng Bottom, Black Box, Eng Yellow",
         # BorderStyle=3 (不透明背景框), BackColour=&H20000000 (87%不透明黑色)
-        # 字体从50号改为75号，英文从35号改为45号
-        "ass_style_line": "Style: Default,Microsoft YaHei,75,&H00FFFFFF,&H000000FF,&H00000000,&H20000000,-1,0,0,0,100,100,0,0,3,0,0,2,20,20,35,1",
+        # 字体大小：75改为50 (2/3)，英文45改为30
+        "ass_style_line": "Style: Default,Microsoft YaHei,50,&H00FFFFFF,&H000000FF,&H00000000,&H20000000,-1,0,0,0,100,100,0,0,3,0,0,2,20,20,35,1",
         "order": "chi_first", # 中文在前/上
         "english_color": "&H00FFFF&", # 黄色
-        "english_fontsize": 45  # 从35改为45
+        "english_fontsize": 30  # 45改为30 (2/3)
     },
-    
+
     # 风格3: 专业双语字幕 (中文在上大号, 英文在下小号, 白字黑边, 极小行间距) - 默认样式
     "premium": {
         "description": "中文在上大号，英文在下小号，白字黑边，专业清晰【默认样式】",
         # 参数说明:
-        # - Fontsize: 85 (中文主字号，1080p优化)
+        # - Fontsize: 57 (中文主字号，原85改为57，2/3大小)
         # - PrimaryColour: &H00FFFFFF (纯白色文字)
         # - OutlineColour: &H00000000 (黑色描边)
         # - BorderStyle: 1 (精细描边)
@@ -38,11 +38,11 @@ STYLES = {
         # - Shadow: 0 (无阴影，更清晰)
         # - Alignment: 2 (底部居中)
         # - MarginV: 40 (底部边距)
-        "ass_style_line": "Style: Default,Microsoft YaHei,85,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,20,20,40,1",
+        "ass_style_line": "Style: Default,Microsoft YaHei,57,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,2,20,20,40,1",
         "order": "chi_first",  # 中文在上
         "english_color": None,  # 英文也用白色
-        "english_fontsize": 60,  # 英文字号小于中文
-        "chi_fontsize": 85,  # 中文大字号
+        "english_fontsize": 40,  # 英文字号：原60改为40 (2/3)
+        "chi_fontsize": 57,  # 中文大字号：原85改为57 (2/3)
         "line_spacing": 5  # 极小行间距（像素）
     }
 }

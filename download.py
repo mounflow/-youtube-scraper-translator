@@ -7,6 +7,7 @@ import yt_dlp
 from pathlib import Path
 from typing import Optional, Dict
 from utils import setup_logger, DOWNLOADS_DIR, validate_file_size, sanitize_filename
+from config import FFMPEG_PATH, FFMPEG_DIR, NODE_PATH
 
 logger = setup_logger("download")
 
@@ -46,17 +47,22 @@ def download_video(
                 progress = float(p) / 100
                 if progress_callback:
                     progress_callback(progress * 0.5, f"Downloading: {d.get('_percent_str')} - {d.get('_eta_str', '?')}s left")
-            except:
+            except Exception:
                 pass
         elif d['status'] == 'finished':
             if progress_callback:
                 progress_callback(0.5, "Download complete. Processing...")
 
     ydl_opts = {
-        # Standard best quality selection
-        'format': f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]/best',
+        # Resilient format selection prioritizing height but allowing fallbacks
+        # 1. Best video + best audio
+        # 2. Best combined format up to quality
+        # 3. Just best available format
+        'format': f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]/bestvideo+bestaudio/best',
         # Default outtmpl (will be overridden)
         'outtmpl': str(DOWNLOADS_DIR / '%(title)s.%(ext)s'),
+        'extractor_args': {'youtube': ['player-client=web,default']},
+        'ignoreerrors': True, # Continue on download errors
         'quiet': False,
         'no_warnings': False,
         'prefer_ffmpeg': True,
@@ -67,11 +73,31 @@ def download_video(
         'http_chunksize': 10485760,  # 10MB chunk size
         'retries': 10,  # More retries
         'keepvideo': False,  # Don't keep intermediate files
+        'ffmpeg_location': FFMPEG_DIR if FFMPEG_DIR else None,
+        # Enable JS n-challenge remote components downloading natively
+        'remote_components': ['ejs:github'],
         'js_runtimes': {
             'node': {'args': ['--no-warnings'], 'path': NODE_PATH},
             'deno': {},
         },
     }
+    # Append raw CLI arguments required for anti-n-challenge solver
+    ydl_opts['extractor_args'] = {
+        'youtube': [
+            'player-client=web,default',
+            'player-skip=webpage,configs'
+        ]
+    }
+    # 强制覆盖 extractor_kwargs，防止 oauth2 客户端被自动选择
+    ydl_opts['extractor_kwargs'] = {
+        'youtube': {
+            'player_client': ['web', 'default'],
+            'skip': ['webpage', 'configs']
+        }
+    }
+    ydl_opts['outtmpl'] = str(DOWNLOADS_DIR / '%(title)s.%(ext)s')
+    # Adding http_headers required to seem less bot-like
+    ydl_opts['http_headers'] = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
 
     # Add cookies if specified
     if cookies_from_browser:
@@ -81,22 +107,6 @@ def download_video(
         ydl_opts['cookiefile'] = cookies_file
         logger.info(f"Using cookies from file: {cookies_file}")
 
-    # Set FFmpeg location
-    import os
-    ffmpeg_search_paths = [
-        os.environ.get("FFMPEG_PATH"),
-        r"D:\SofewareHome\aboutT\ffmpeg\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe",
-        r"C:\ffmpeg\bin\ffmpeg.exe",
-    ]
-    formatted_ffmpeg_dir = None
-    for path in ffmpeg_search_paths:
-        if path and Path(path).exists():
-           formatted_ffmpeg_dir = str(Path(path).parent)
-           break
-    
-    if formatted_ffmpeg_dir:
-         ydl_opts['ffmpeg_location'] = formatted_ffmpeg_dir
-         logger.info(f"Using FFmpeg location: {formatted_ffmpeg_dir}")
 
     if download_subs:
         ydl_opts.update({
@@ -114,7 +124,24 @@ def download_video(
         fetch_opts = {
             'quiet': True,
             'nocheckcertificate': True,
-            'retries': 3
+            'retries': 3,
+            'ignoreerrors': True,
+            'extract_flat': True,  # Do not try to extract formats
+            'remote_components': ['ejs:github'],
+            # 强制覆盖 extractor_kwargs，防止 oauth2 客户端被自动选择
+            'extractor_kwargs': {
+                'youtube': {
+                    'player_client': ['web', 'default'],
+                    'skip': ['webpage', 'configs']
+                }
+            },
+        }
+        # Add solver flag for fetching phase too
+        fetch_opts['extractor_args'] = {
+            'youtube': [
+                'player-client=web,default',
+                'player-skip=webpage,configs'
+            ]
         }
         if cookies_from_browser:
             fetch_opts['cookiesfrombrowser'] = (cookies_from_browser,)
@@ -123,7 +150,11 @@ def download_video(
             
         with yt_dlp.YoutubeDL(fetch_opts) as ydl_temp:
              info_temp = ydl_temp.extract_info(url, download=False)
-             raw_title = info_temp.get('title', 'video')
+             # Fallback handling for None info
+             if not info_temp:
+                 raw_title = f"video_fallback_{str(hash(url))[-6:]}"
+             else:
+                 raw_title = info_temp.get('title', f"video_fallback_{str(hash(url))[-6:]}")
              clean_title = sanitize_filename(raw_title)
              
         # ENFORCE SAFE FILENAME

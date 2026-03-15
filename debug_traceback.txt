@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "D:\AI_Practice\-youtube-scraper-translator\server.py", line 191, in _run_task
+    proc = await asyncio.create_subprocess_exec(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "C:\Python314\Lib\asyncio\subprocess.py", line 224, in create_subprocess_exec
+    transport, protocol = await loop.subprocess_exec(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        stderr=stderr, **kwds)
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\asyncio\base_events.py", line 1798, in subprocess_exec
+    transport = await self._make_subprocess_transport(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        protocol, popen_args, False, stdin, stdout, stderr,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        bufsize, **kwargs)
+        ^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\asyncio\base_events.py", line 533, in _make_subprocess_transport
+    raise NotImplementedError
+NotImplementedError

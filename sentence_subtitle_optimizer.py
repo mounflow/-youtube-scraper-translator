@@ -10,10 +10,15 @@ import re
 import time
 from pathlib import Path
 from typing import List, Dict, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from deep_translator import GoogleTranslator
 from utils import setup_logger
 
 logger = setup_logger("sentence_optimizer")
+
+# 并发翻译配置
+MAX_CONCURRENT_TRANSLATIONS = 10  # 最大并发数
+TRANSLATION_BATCH_SIZE = 20  # 每批处理数量
 
 # 专有名词修正表
 TERM_CORRECTIONS = {
@@ -165,13 +170,13 @@ def merge_subtitles_by_sentence(entries: List[SubtitleEntry]) -> List[Tuple[int,
 
 def split_long_sentence_by_duration(start_ms: int, end_ms: int, text: str,
                                     video_path: str = None,
-                                    audio_sync: bool = False) -> List[Tuple[int, int, str]]:
+                                    audio_sync: bool = False,
+                                    progress_mgr=None) -> List[Tuple[int, int, str]]:
     """根据时长智能切分长句子
 
-    策略：
-    - < 5秒：保持完整
-    - 5-10秒：在主要标点处切分（。！？.!?）
-    - > 10秒：在次要标点处也切分（，；,:；:）
+    新增：
+    - 最大字数限制 (中英文混合) -> 避免超出屏幕边界
+    - 声波能量检测 -> 寻找静音/停顿点切分
 
     参数:
         video_path: 视频文件路径（用于音频分析）
@@ -180,24 +185,38 @@ def split_long_sentence_by_duration(start_ms: int, end_ms: int, text: str,
     返回: [(start_ms, end_ms, text_segment), ...]
     """
     duration_sec = (end_ms - start_ms) / 1000
-
-    # 短句子：保持完整
-    if duration_sec < 5:
+    
+    # 统计可见字符数（粗略，这里简单当做字符长度）
+    char_count = len(text)
+    max_chars = 38 # 最大行长设定
+    
+    # 如果既短又不长，直接返回
+    if duration_sec < 5 and char_count <= max_chars:
         return [(start_ms, end_ms, text)]
 
-    # 寻找切分点
-    segments = []
-    if duration_sec < 10:
-        # 中等长度：在主要标点处切分
-        split_chars = ('.', '!', '?', '。', '！', '？')
-    else:
-        # 长句子：在逗号处也切分
-        split_chars = ('.', '!', '?', '。', '！', '？', ',', '，', ';', '；', ':', '：')
+    # 初始化音频分析器
+    audio_analyzer = None
+    silence_points = []
+    if audio_sync and video_path:
+        try:
+            from audio_analyzer import AudioAnalyzer
+            audio_analyzer = AudioAnalyzer(video_path)
+            # 加载特征并寻找静音点
+            if audio_analyzer.load_or_extract_audio_features(progress_mgr):
+                silence_points = audio_analyzer.find_silence_points(start_ms, end_ms)
+                if silence_points:
+                    logger.debug(f"找到 {len(silence_points)} 个潜在静音切分点")
+        except Exception as e:
+            logger.warning(f"[音频同步] 初始化/寻点失败: {e}")
 
-    # 按切分点分割
+    # 寻找切分点 (标点符号始终是首选切分点)
+    segments = []
+    split_chars = ('.', '!', '?', '。', '！', '？', ',', '，', ';', '；', ':', '：')
+    
     parts = []
     current_part = ""
 
+    # 首先按标点大致分段
     for char in text:
         current_part += char
         if char in split_chars:
@@ -206,58 +225,58 @@ def split_long_sentence_by_duration(start_ms: int, end_ms: int, text: str,
 
     if current_part.strip():
         parts.append(current_part.strip())
+        
+    # 如果标点依然分不出，或者某一段还是超长，进一步按空格或者硬切分
+    final_parts = []
+    for part in parts:
+        while len(part) > max_chars:
+            # 找空格切分
+            split_idx = part.rfind(' ', 0, max_chars)
+            if split_idx == -1:
+                split_idx = max_chars
+            final_parts.append(part[:split_idx].strip())
+            part = part[split_idx:].strip()
+        if part:
+            final_parts.append(part)
 
-    # 如果没有找到切分点，保持完整
-    if len(parts) <= 1:
+    if len(final_parts) <= 1:
         return [(start_ms, end_ms, text)]
 
-    # 根据时间分配时长
-    total_chars = sum(len(p) for p in parts)
+    # 时间分配逻辑
+    total_chars = sum(len(p) for p in final_parts)
     current_time = start_ms
 
-    # 初始化音频分析器（如果启用）
-    audio_analyzer = None
-    if audio_sync and video_path:
-        try:
-            from audio_analyzer import AudioAnalyzer
-            audio_analyzer = AudioAnalyzer(video_path)
-            logger.info("[音频同步] 已启用音频波形分析")
-        except Exception as e:
-            logger.warning(f"[音频同步] 初始化失败: {e}，使用字符比例分配")
-
-    for i, part in enumerate(parts):
-        if i == len(parts) - 1:
-            # 最后一个部分使用剩余时间
+    for i, part in enumerate(final_parts):
+        if i == len(final_parts) - 1:
             part_end = end_ms
         else:
-            # 计算初步时长（按字符比例）
+            # 默认：按字符成比例分配
             part_duration = int((end_ms - start_ms) * (len(part) / total_chars))
-            part_end = current_time + part_duration
+            expected_end = current_time + part_duration
+            
+            # 智能声音对齐：如果周围有静音点，贴合静音点
+            best_end = expected_end
+            if silence_points:
+                # 寻找距离 expected_end 最近的静音点（距离要求不超过 1.5 秒）
+                closest_silence = min(silence_points, key=lambda x: abs(x - expected_end))
+                if abs(closest_silence - expected_end) < 1500:
+                    best_end = closest_silence
+                    logger.debug(f"通过声波静音点修正断句时间: {expected_end} -> {best_end}")
+                    
+            part_end = best_end
 
-            # 如果启用了音频分析，使用实际语音边界调整
-            if audio_analyzer:
-                try:
-                    adjusted_start, adjusted_end = audio_analyzer.adjust_subtitle_timing(
-                        current_time, part_end
-                    )
-                    # 使用调整后的时长，但确保不会偏离太多
-                    if abs(adjusted_end - adjusted_start - part_duration) < part_duration * 0.5:
-                        part_end = adjusted_end
-                except Exception as e:
-                    logger.debug(f"[音频同步] 调整失败: {e}，使用原时长")
-
-            # 确保至少有1秒的显示时间
-            if part_end - current_time < 1000:
-                part_end = current_time + 1000
-
+            # 兜底：最小时间
+            if part_end - current_time < 800:
+                part_end = current_time + 800
+                
         segments.append((current_time, part_end, part))
         current_time = part_end
 
-    # 修正最后一个部分的时间
+    # 修正最后一截
     if segments:
         segments[-1] = (segments[-1][0], end_ms, segments[-1][2])
 
-    logger.debug(f"切分长句子 ({duration_sec:.1f}秒): {len(segments)} 段")
+    logger.debug(f"智能切分长句子 ({duration_sec:.1f}秒, {char_count}字) 为 {len(segments)} 段")
     return segments
 
 
@@ -268,22 +287,115 @@ def correct_terms(text: str) -> str:
     return text
 
 
+def _translate_single(args: Tuple) -> Dict:
+    """翻译单个句子（用于并发）"""
+    start_ms, end_ms, english, source_lang, target_lang = args
+
+    try:
+        # 修正专有名词
+        english = correct_terms(english)
+
+        # 创建新的翻译器实例（线程安全）
+        translator = GoogleTranslator(source=source_lang, target=target_lang)
+        chinese = translator.translate(english)
+
+        # 清理翻译结果
+        chinese = chinese.strip() if chinese else "[翻译失败]"
+
+        return {
+            'start': start_ms,
+            'end': end_ms,
+            'english': english,
+            'chinese': chinese,
+            'success': True
+        }
+    except Exception as e:
+        logger.error(f"翻译失败: {english[:30]}... -> {e}")
+        return {
+            'start': start_ms,
+            'end': end_ms,
+            'english': english,
+            'chinese': "[翻译失败]",
+            'success': False
+        }
+
+
+def translate_sentences_concurrent(sentences: List[Tuple[int, int, str]],
+                                   source_lang: str = 'en',
+                                   target_lang: str = 'zh-CN',
+                                   progress_mgr=None) -> List[Dict]:
+    """并发翻译句子列表（比顺序翻译快 5-10 倍）"""
+
+    total = len(sentences)
+    logger.info(f"开始并发翻译 {total} 条句子 (并发数: {MAX_CONCURRENT_TRANSLATIONS})")
+
+    results = []
+    completed = 0
+
+    # 创建翻译任务
+    task_id = None
+    if progress_mgr:
+        task_id = progress_mgr.translation_task(total)
+
+    # 使用线程池并发翻译
+    with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_TRANSLATIONS) as executor:
+        # 提交所有翻译任务
+        future_to_idx = {}
+        for idx, (start_ms, end_ms, english) in enumerate(sentences):
+            future = executor.submit(_translate_single,
+                                   (start_ms, end_ms, english, source_lang, target_lang))
+            future_to_idx[future] = idx
+
+        # 收集结果（按顺序）
+        results_dict = {}
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            result = future.result()
+            results_dict[idx] = result
+            completed += 1
+
+            # 更新进度
+            if progress_mgr and task_id:
+                progress_mgr.progress.update(
+                    task_id,
+                    advance=1,
+                    description=f"翻译 {completed}/{total}"
+                )
+
+            # 每10条输出一次日志
+            if completed % 10 == 0:
+                logger.info(f"翻译进度: {completed}/{total} ({completed*100//total}%)")
+
+        # 按原始顺序排序结果
+        results = [results_dict[i] for i in range(len(sentences))]
+
+    logger.info(f"并发翻译完成: {len(results)} 条")
+    return results
+
+
 def translate_sentences(sentences: List[Tuple[int, int, str]],
                         source_lang: str = 'en',
                         target_lang: str = 'zh-CN',
                         video_path: str = None,
-                        audio_sync: bool = False) -> List[Dict]:
+                        audio_sync: bool = False,
+                        progress_mgr=None) -> List[Dict]:
     """翻译句子列表（包含智能切分）
 
     参数:
         video_path: 视频文件路径（用于音频分析）
         audio_sync: 是否启用音频同步
+        progress_mgr: ProgressManager 实例（可选）
 
     返回: [{'start': ms, 'end': ms, 'english': str, 'chinese': str}, ...]
     """
     translator = GoogleTranslator(source=source_lang, target=target_lang)
 
     results = []
+
+    # 创建翻译任务
+    task_id = None
+    if progress_mgr:
+        task_id = progress_mgr.translation_task(len(sentences))
 
     for i, (start_ms, end_ms, english) in enumerate(sentences):
         try:
@@ -292,7 +404,7 @@ def translate_sentences(sentences: List[Tuple[int, int, str]],
 
             # 智能切分长句子
             split_sentences = split_long_sentence_by_duration(
-                start_ms, end_ms, english, video_path, audio_sync
+                start_ms, end_ms, english, video_path, audio_sync, progress_mgr
             )
 
             for seg_start, seg_end, seg_english in split_sentences:
@@ -310,6 +422,14 @@ def translate_sentences(sentences: List[Tuple[int, int, str]],
                 })
 
                 logger.info(f"[{len(results)}] {seg_english[:60]}... -> {chinese[:60]}...")
+
+            # 更新 Rich 进度条
+            if progress_mgr and task_id:
+                progress_mgr.progress.update(
+                    task_id,
+                    advance=1,
+                    description=f"翻译句子 {i+1}/{len(sentences)}: {english[:40]}..."
+                )
 
             # 速率限制
             time.sleep(0.2)
@@ -385,7 +505,7 @@ def save_bilingual_srt(subtitles: List[Dict], output_path: str):
     logger.info(f"   总计 {len(subtitles)} 条字幕")
 
 
-def optimize_srt(input_srt: str, output_srt: str, video_path: str = None, audio_sync: bool = False) -> bool:
+def optimize_srt(input_srt: str, output_srt: str, video_path: str = None, audio_sync: bool = False, progress_mgr=None) -> bool:
     """主函数：优化 SRT 字幕
 
     Args:
@@ -393,6 +513,7 @@ def optimize_srt(input_srt: str, output_srt: str, video_path: str = None, audio_
         output_srt: 输出的优化后 SRT 文件路径
         video_path: 视频文件路径（用于音频分析）
         audio_sync: 是否启用音频同步
+        progress_mgr: ProgressManager 实例（可选）
 
     Returns:
         bool: 是否成功
@@ -412,14 +533,28 @@ def optimize_srt(input_srt: str, output_srt: str, video_path: str = None, audio_
 
     # 2. 合并为完整句子
     sentences = merge_subtitles_by_sentence(entries)
+    logger.info(f"📝 合并后: {len(sentences)} 条句子")
 
-    # 3. 翻译（传入视频路径和音频同步标志）
-    translated = translate_sentences(sentences, video_path=video_path, audio_sync=audio_sync)
+    # 3. 智能切分（逐条处理，需要音频分析）
+    logger.info("✂️ 开始智能切分长句子...")
+    split_tasks = []
+    for i, (start_ms, end_ms, english) in enumerate(sentences):
+        english = correct_terms(english)
+        split_sentences = split_long_sentence_by_duration(
+            start_ms, end_ms, english, video_path, audio_sync, progress_mgr
+        )
+        for seg_start, seg_end, seg_english in split_sentences:
+            split_tasks.append((seg_start, seg_end, seg_english))
 
-    # 4. 修复重叠
+    logger.info(f"✂️ 切分完成: {len(split_tasks)} 条待翻译")
+
+    # 4. 并发翻译
+    translated = translate_sentences_concurrent(split_tasks, progress_mgr=progress_mgr)
+
+    # 5. 修复重叠
     fix_overlaps_gentle(translated, min_gap_ms=200)
 
-    # 5. 保存
+    # 6. 保存
     save_bilingual_srt(translated, output_srt)
 
     # 打印预览

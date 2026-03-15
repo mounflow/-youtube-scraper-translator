@@ -1,0 +1,99 @@
+# 22 RTOS Part-1: What is a Real-Time Operating System?
+https://www.youtube.com/watch?v=TEq3-p0GWGI
+
+# 23 RTOS Part-2: Automating the context switch
+https://www.youtube.com/watch?v=PKml9ki3178
+
+# 24 RTOS Part-3: Automating the scheduling with round-robin policy
+https://www.youtube.com/watch?v=PX_LDyiXs5Y
+
+# 25 RTOS Part-4: Efficient blocking of threads
+https://www.youtube.com/watch?v=JurV5BgjQ50
+
+# 26 RTOS Part-5: What is "real-time"? Preemptive, priority-based scheduling
+https://www.youtube.com/watch?v=kLxxXNCrY60
+
+# 27 RTOS Part-6: Synchronization and communication among concurrent threads
+https://www.youtube.com/watch?v=IrDcBZX0AdY
+
+# 28 RTOS Part-7: Mutual exclusion mechanisms
+https://www.youtube.com/watch?v=kcpVI3IjUUM
+
+# 29 OOP Part-1: Encapsulation (classes) in C and C++
+https://www.youtube.com/watch?v=dSLodtKuung
+
+# 30 OOP Part-2: Inheritance in C and C++
+https://www.youtube.com/watch?v=oS3a7wn9P_s
+
+# 31 OOP Part-3: Polymorphism in C++
+https://www.youtube.com/watch?v=xHMje9fL1Bk
+
+# 32 OOP Part-4: Polymorphism in C
+https://www.youtube.com/watch?v=2v_qM5SJDlY
+
+# 33 Event-Driven Programming Part-1: GUI example, events, event-loop, run-to-completion, no-blocking
+https://www.youtube.com/watch?v=rfb2JI1GGIc
+
+# 34 Event-Driven Programming Part-2: Best practices for concurrency & Active Object pattern
+https://www.youtube.com/watch?v=l69ghMpsp6w
+
+# 35 State Machines Part-1: What is a state machine?
+https://www.youtube.com/watch?v=EBSxZKjgBXI
+
+# 36 State Machines Part-2: Guard conditions
+https://www.youtube.com/watch?v=RGQRllvrMyY
+
+# 37 State Machines Part-3: Input-Driven State Machines
+https://www.youtube.com/watch?v=E2Im7jLDDG4
+
+# 38 State Machines Part-4: State Tables and Entry/Exit Actions
+https://www.youtube.com/watch?v=dwRsgSBcawU
+
+# 39 State Machines Part-5: Optimal Implementation in C
+https://www.youtube.com/watch?v=FCymm6PBtOs
+
+# 40 State Machines Part-6: What is a Hierarchical State Machine?
+https://www.youtube.com/watch?v=lUvUNuUMQHo
+
+# 41 State Machines Part-7:Automatic Code Generation
+https://www.youtube.com/watch?v=FHV5vZyECOA
+
+# 42 State Machines Part-8: Semantics of Hierarchical State Machines
+https://www.youtube.com/watch?v=NxV7JlU0-F4
+
+# 43 Active Objects in Real-Time Part-1: Run-to-Completion and RMS/RMA
+https://www.youtube.com/watch?v=6VhvmJVvaKY
+
+# 44 Active Objects in Real-Time Part-2: Mutable Events
+https://www.youtube.com/watch?v=e_Mfvat9mAA
+
+# 45 Software Tracing with printf
+https://www.youtube.com/watch?v=i8lYMDcyLAM
+
+# 46 Software Tracing with Binary Protocols
+https://www.youtube.com/watch?v=rwjV7LBOE8A
+
+# 47 Assertions and Design by Contract, Part-1
+https://www.youtube.com/watch?v=cnEhFwo4u5g
+
+# 48 Assertions and Design by Contract, Part-2
+https://www.youtube.com/watch?v=yHBmzQQVVas
+
+# 49 Embedded Unit Testing
+https://www.youtube.com/watch?v=kcpHuuEt1xs
+
+# 50 To block or NOT to block, that is the question! Blocking as technical debt...
+https://www.youtube.com/watch?v=qEIL-meKgLs
+
+# 51 Traceable Documentation with Doxygen & Spexygen
+https://www.youtube.com/watch?v=5naC_z-76Aw
+
+# 52 Using low-power sleep modes in the "superloop" architecture
+https://www.youtube.com/watch?v=Fe6HoMsrplw
+
+# 53 Priority-based scheduler for the "superloop" architecture
+https://www.youtube.com/watch?v=VzgOqOSPS1o
+
+# 54 Non-preemptive QV Kernel for Active Objects
+https://www.youtube.com/watch?v=lXkAQR7TNOg
+

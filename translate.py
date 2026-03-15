@@ -3,6 +3,7 @@ Translation module using deep-translator.
 Translates subtitle text and creates bilingual subtitle files.
 """
 
+import re
 import time
 from pathlib import Path
 from typing import List, Dict
@@ -170,7 +171,8 @@ class Translator:
         self,
         entries: List[SubtitleEntry],
         max_line_length: int = 20,
-        batch_size: int = 5
+        batch_size: int = 5,
+        progress_mgr=None
     ) -> List[Dict]:
         """
         Translate subtitle entries and create bilingual format.
@@ -179,6 +181,7 @@ class Translator:
             entries: List of SubtitleEntry objects
             max_line_length: Maximum characters per line for Chinese
             batch_size: Number of texts to translate in each batch
+            progress_mgr: ProgressManager instance for progress display
 
         Returns:
             List of dictionaries with original and translated text
@@ -187,6 +190,11 @@ class Translator:
 
         results = []
         failed_entries = []
+
+        # 创建翻译任务
+        task_id = None
+        if progress_mgr:
+            task_id = progress_mgr.translation_task(len(entries))
 
         for i, entry in enumerate(entries, 1):
             # Translate text
@@ -218,8 +226,15 @@ class Translator:
                     'translated': entry.text,  # Fallback to original
                 })
 
-            # Progress logging
-            if i % 10 == 0:
+            # 更新进度条
+            if progress_mgr and task_id:
+                progress_mgr.progress.update(
+                    task_id,
+                    advance=1,
+                    description=f"翻译 {i}/{len(entries)}: {entry.text[:30]}..."
+                )
+            elif i % 10 == 0:
+                # Fallback to simple progress logging
                 logger.info(f"Translated {i}/{len(entries)} entries")
 
             # Small delay to avoid rate limiting
@@ -263,8 +278,6 @@ class Translator:
 
         return '\n'.join(lines)
 
-
-import re
 
 
 def save_bilingual_srt(
