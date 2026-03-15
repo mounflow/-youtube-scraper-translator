@@ -54,11 +54,9 @@ def download_video(
                 progress_callback(0.5, "Download complete. Processing...")
 
     ydl_opts = {
-        # Resilient format selection prioritizing height but allowing fallbacks
-        # 1. Best video + best audio
-        # 2. Best combined format up to quality
-        # 3. Just best available format
-        'format': f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]/bestvideo+bestaudio/best',
+        # Simplified format selection - prioritize speed
+        # Use combined format (single file) to avoid muxing overhead
+        'format': f'best[height<={quality}]/best',
         # Default outtmpl (will be overridden)
         'outtmpl': str(DOWNLOADS_DIR / '%(title)s.%(ext)s'),
         'extractor_args': {'youtube': ['player-client=web,default']},
@@ -67,13 +65,13 @@ def download_video(
         'no_warnings': False,
         'prefer_ffmpeg': True,
         'progress_hooks': [_yt_progress_hook],
-        # VPN environment tolerance
-        'socket_timeout': 60,
-        'nocheckcertificate': True,  # Skip certificate verification for VPN
-        'http_chunksize': 10485760,  # 10MB chunk size
-        'retries': 10,  # More retries
+        # Network optimization
+        'socket_timeout': 30,
+        'retries': 3,
         'keepvideo': False,  # Don't keep intermediate files
         'ffmpeg_location': FFMPEG_DIR if FFMPEG_DIR else None,
+        # Download speed optimization
+        'http_chunk_size': 1048576,  # 1MB chunks for faster download
         # Enable JS n-challenge remote components downloading natively
         'remote_components': ['ejs:github'],
         'js_runtimes': {
@@ -81,23 +79,12 @@ def download_video(
             'deno': {},
         },
     }
-    # Append raw CLI arguments required for anti-n-challenge solver
+
+    # Simplified extractor args
     ydl_opts['extractor_args'] = {
-        'youtube': [
-            'player-client=web,default',
-            'player-skip=webpage,configs'
-        ]
+        'youtube': ['player-client=web,default']
     }
-    # 强制覆盖 extractor_kwargs，防止 oauth2 客户端被自动选择
-    ydl_opts['extractor_kwargs'] = {
-        'youtube': {
-            'player_client': ['web', 'default'],
-            'skip': ['webpage', 'configs']
-        }
-    }
-    ydl_opts['outtmpl'] = str(DOWNLOADS_DIR / '%(title)s.%(ext)s')
-    # Adding http_headers required to seem less bot-like
-    ydl_opts['http_headers'] = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    ydl_opts['http_headers'] = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
 
     # Add cookies if specified
     if cookies_from_browser:
